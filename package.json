@@ -1,0 +1,44 @@
+{
+  "name": "recipes-cli",
+  "version": "0.1.0",
+  "description": "Drive websites through their accessibility tree instead of screenshots — real logged-in Chrome, auditable JSON recipes, in-page replay.",
+  "keywords": ["browser-automation", "cli", "accessibility", "playwright", "agent", "mcp"],
+  "license": "MIT",
+  "homepage": "https://github.com/manuqwert1234/recipe#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/manuqwert1234/recipe.git"
+  },
+  "bugs": {
+    "url": "https://github.com/manuqwert1234/recipe/issues"
+  },
+  "type": "module",
+  "engines": {
+    "node": ">=18"
+  },
+  "os": ["darwin"],
+  "bin": {
+    "recipes": "./bin/recipes.js"
+  },
+  "files": [
+    "bin",
+    "src",
+    "mcp",
+    "SKILL.md",
+    "README.md",
+    "BUILDLOG.md",
+    "LICENSE"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "scripts": {
+    "test": "node --test test/recipe.test.js"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.30.0",
+    "commander": "^12.1.0",
+    "playwright-core": "^1.48.0",
+    "zod": "^4.4.3"
+  }
+}

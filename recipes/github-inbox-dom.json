@@ -1,0 +1,21 @@
+{
+  "site": "github.com",
+  "start_url": "https://github.com/pulls",
+  "ttl": "30d",
+  "recordedAt": "2026-08-24T06:59:26.000Z",
+  "auth_binding": "browser-session",
+  "steps": [
+    {
+      "mode": "dom",
+      "action": "read",
+      "locate": { "role": "link", "nameContains": "unread notifications" },
+      "expect": { "textContains": "no unread notifications" }
+    },
+    {
+      "mode": "dom",
+      "action": "read",
+      "locate": { "role": "button", "nameContains": "Needs your review" },
+      "expect": { "textContains": "Needs your review" }
+    }
+  ]
+}

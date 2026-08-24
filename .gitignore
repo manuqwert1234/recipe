@@ -1,0 +1,10 @@
+node_modules/
+.recipes/
+logs/
+*.tgz
+
+# recipes/*.json is where anyone using this tool will drop their own
+# recipes — only the two shipped examples are tracked.
+recipes/*.json
+!recipes/github-repo-check.json
+!recipes/github-inbox-dom.json

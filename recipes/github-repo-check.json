@@ -1,0 +1,17 @@
+{
+  "site": "jsonplaceholder.typicode.com",
+  "ttl": "6h",
+  "auth_binding": "none",
+  "steps": [
+    {
+      "mode": "fetch",
+      "call": "GET /posts/1",
+      "expect": { "status": 200, "json.userId": 1 }
+    },
+    {
+      "mode": "fetch",
+      "call": "GET /posts/1",
+      "expect": { "status": 200, "json.userId": 999 }
+    }
+  ]
+}

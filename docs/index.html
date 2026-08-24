@@ -1,0 +1,458 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>recipes — documentation</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #ffffff;
+    --surface: #f6f7f9;
+    --surface-2: #eef0f3;
+    --ink: #0e1116;
+    --ink-dim: #57606a;
+    --muted: #8b949e;
+    --line: #e3e6ea;
+    --line-strong: #c9cdd3;
+    --accent: #5b4fe0;
+    --accent-ink: #ffffff;
+    --good: #147d3f;
+    --warn-bg: #fff4e5;
+    --warn-ink: #7a4a00;
+    --code-bg: #12141a;
+    --code-ink: #e6e8ee;
+    --code-dim: #8b91a5;
+    --code-accent: #8fb8ff;
+    --code-string: #9fe6a0;
+    --shadow: 0 1px 2px rgba(14,17,22,0.04), 0 8px 28px rgba(14,17,22,0.06);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #0b0d12;
+      --surface: #12141b;
+      --surface-2: #171a22;
+      --ink: #eef0f4;
+      --ink-dim: #a3a9b5;
+      --muted: #767c88;
+      --line: #23262f;
+      --line-strong: #383d49;
+      --accent: #8f86ff;
+      --accent-ink: #0b0d12;
+      --good: #4fd88a;
+      --warn-bg: #2a2110;
+      --warn-ink: #ecb45f;
+      --code-bg: #06070a;
+      --code-ink: #e6e8ee;
+      --code-dim: #6b7180;
+      --code-accent: #8fb8ff;
+      --code-string: #9fe6a0;
+      --shadow: 0 1px 2px rgba(0,0,0,0.3), 0 8px 28px rgba(0,0,0,0.4);
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #0b0d12;
+    --surface: #12141b;
+    --surface-2: #171a22;
+    --ink: #eef0f4;
+    --ink-dim: #a3a9b5;
+    --muted: #767c88;
+    --line: #23262f;
+    --line-strong: #383d49;
+    --accent: #8f86ff;
+    --accent-ink: #0b0d12;
+    --good: #4fd88a;
+    --warn-bg: #2a2110;
+    --warn-ink: #ecb45f;
+    --code-bg: #06070a;
+    --code-ink: #e6e8ee;
+    --code-dim: #6b7180;
+    --code-accent: #8fb8ff;
+    --code-string: #9fe6a0;
+    --shadow: 0 1px 2px rgba(0,0,0,0.3), 0 8px 28px rgba(0,0,0,0.4);
+  }
+
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: "Sora", ui-sans-serif, system-ui, -apple-system, sans-serif;
+    font-size: 16px;
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+  }
+  .mono { font-family: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace; }
+
+  a { color: var(--accent); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  a:focus-visible, button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+  .shell { display: grid; grid-template-columns: 250px 1fr; max-width: 1180px; margin: 0 auto; }
+  @media (max-width: 880px) { .shell { grid-template-columns: 1fr; } .sidebar { display: none; } }
+
+  /* ---------- sidebar ---------- */
+  .sidebar {
+    position: sticky; top: 0; align-self: start; height: 100vh; overflow-y: auto;
+    padding: 28px 18px 40px 24px; border-right: 1px solid var(--line);
+  }
+  .brand { display: flex; align-items: baseline; gap: 8px; margin-bottom: 4px; }
+  .brand .name { font-family: "JetBrains Mono", monospace; font-weight: 700; font-size: 1.15rem; }
+  .brand .tag { font-size: 0.7rem; color: var(--muted); }
+  .sidebar nav { margin-top: 22px; }
+  .sidebar .group-label {
+    font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.07em; font-weight: 600;
+    color: var(--muted); margin: 18px 0 6px;
+  }
+  .sidebar .group-label:first-child { margin-top: 0; }
+  .sidebar a.nav-link {
+    display: block; padding: 5px 8px; margin: 1px 0; border-radius: 6px;
+    color: var(--ink-dim); font-size: 0.88rem;
+  }
+  .sidebar a.nav-link:hover { background: var(--surface); color: var(--ink); text-decoration: none; }
+
+  /* ---------- main ---------- */
+  main { padding: 40px 40px 100px; min-width: 0; }
+  @media (max-width: 640px) { main { padding: 28px 20px 80px; } }
+  .measure { max-width: 68ch; }
+
+  .hero { margin-bottom: 36px; }
+  .hero h1 { font-family: "JetBrains Mono", monospace; font-size: clamp(2rem, 5vw, 2.6rem); font-weight: 700; margin: 0 0 10px; letter-spacing: -0.01em; }
+  .hero p.pitch { font-size: 1.12rem; color: var(--ink-dim); margin: 0 0 22px; max-width: 62ch; }
+  .badges { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 22px; }
+  .badge {
+    font-family: "JetBrains Mono", monospace; font-size: 0.72rem; font-weight: 600;
+    padding: 3px 9px; border-radius: 20px; border: 1px solid var(--line-strong); color: var(--ink-dim);
+  }
+  .badge.accent { color: var(--accent); border-color: var(--accent); }
+
+  .install-box {
+    display: flex; align-items: center; justify-content: space-between; gap: 12px;
+    background: var(--code-bg); color: var(--code-ink); border-radius: 8px;
+    padding: 13px 16px; font-family: "JetBrains Mono", monospace; font-size: 0.88rem;
+    max-width: 520px; box-shadow: var(--shadow);
+  }
+  .install-box .prompt { color: var(--code-dim); margin-right: 8px; }
+
+  /* ---------- stat row ---------- */
+  .stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1px; background: var(--line); border: 1px solid var(--line); border-radius: 10px; overflow: hidden; margin: 30px 0 40px; }
+  .stat { background: var(--surface); padding: 18px 20px; }
+  .stat .v { font-family: "JetBrains Mono", monospace; font-size: 1.6rem; font-weight: 700; color: var(--accent); line-height: 1; margin-bottom: 6px; }
+  .stat .l { font-size: 0.82rem; color: var(--ink-dim); }
+  @media (max-width: 640px) { .stats { grid-template-columns: 1fr; } }
+
+  section { margin: 56px 0; scroll-margin-top: 24px; }
+  section h2 { font-family: "JetBrains Mono", monospace; font-size: 1.5rem; font-weight: 700; margin: 0 0 14px; letter-spacing: -0.005em; }
+  section h3 { font-size: 1.05rem; font-weight: 650; margin: 26px 0 10px; }
+  section p { margin: 0 0 14px; color: var(--ink); }
+  section p.dim { color: var(--ink-dim); }
+
+  /* ---------- code blocks ---------- */
+  pre.code {
+    background: var(--code-bg); color: var(--code-ink); border-radius: 8px;
+    padding: 16px 18px; overflow-x: auto; font-family: "JetBrains Mono", monospace;
+    font-size: 0.84rem; line-height: 1.65; margin: 14px 0;
+  }
+  pre.code .c { color: var(--code-dim); font-style: italic; }
+  pre.code .k { color: var(--code-accent); }
+  pre.code .s { color: var(--code-string); }
+  code.inline {
+    font-family: "JetBrains Mono", monospace; font-size: 0.87em;
+    background: var(--surface-2); padding: 1.5px 5px; border-radius: 4px;
+  }
+
+  /* ---------- tables ---------- */
+  .table-wrap { overflow-x: auto; margin: 16px 0; }
+  table { border-collapse: collapse; width: 100%; font-size: 0.88rem; min-width: 460px; }
+  th, td { text-align: left; padding: 9px 12px; border-bottom: 1px solid var(--line); vertical-align: top; }
+  thead th { font-family: "JetBrains Mono", monospace; font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--muted); border-bottom: 1.5px solid var(--line-strong); }
+  td code.inline, th code.inline { white-space: nowrap; }
+
+  /* ---------- diagrams ---------- */
+  figure.diagram {
+    background: var(--surface); border: 1px solid var(--line); border-radius: 10px;
+    padding: 22px 20px 16px; margin: 20px 0;
+  }
+  figure.diagram svg { display: block; margin: 0 auto; color: var(--ink); }
+  figure.diagram figcaption { margin-top: 12px; padding-top: 10px; border-top: 1px solid var(--line); font-size: 0.84rem; color: var(--ink-dim); }
+
+  /* ---------- callouts ---------- */
+  .callout { border-left: 3px solid var(--accent); background: var(--surface); border-radius: 0 8px 8px 0; padding: 12px 16px; margin: 16px 0; font-size: 0.92rem; }
+  .callout.warn { border-left-color: var(--warn-ink); background: var(--warn-bg); color: var(--warn-ink); }
+  .callout b { display: block; font-family: "JetBrains Mono", monospace; font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 4px; }
+
+  /* ---------- feature grid ---------- */
+  .feature-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin: 18px 0; }
+  @media (max-width: 640px) { .feature-grid { grid-template-columns: 1fr; } }
+  .feature { border: 1px solid var(--line); border-radius: 10px; padding: 16px 18px; background: var(--surface); }
+  .feature h4 { margin: 0 0 6px; font-size: 0.95rem; font-family: "JetBrains Mono", monospace; }
+  .feature p { margin: 0; font-size: 0.87rem; color: var(--ink-dim); }
+
+  footer { margin-top: 70px; padding-top: 20px; border-top: 1px solid var(--line); font-family: "JetBrains Mono", monospace; font-size: 0.76rem; color: var(--muted); display: flex; justify-content: space-between; flex-wrap: wrap; gap: 8px; }
+</style>
+</head>
+<body>
+<div class="shell">
+
+  <aside class="sidebar">
+    <div class="brand"><span class="name mono">recipes</span><span class="tag">docs</span></div>
+    <nav>
+      <div class="group-label">Start</div>
+      <a class="nav-link" href="#overview">Overview</a>
+      <a class="nav-link" href="#install">Install</a>
+      <a class="nav-link" href="#quickstart">Quickstart</a>
+      <div class="group-label">Concepts</div>
+      <a class="nav-link" href="#how-it-works">How it works</a>
+      <a class="nav-link" href="#snapshots">Snapshots &amp; refs</a>
+      <a class="nav-link" href="#recipes">Recipe format</a>
+      <a class="nav-link" href="#replay">In-page replay</a>
+      <a class="nav-link" href="#modes">fetch vs dom mode</a>
+      <div class="group-label">Reference</div>
+      <a class="nav-link" href="#commands">Command reference</a>
+      <a class="nav-link" href="#mcp">MCP integration</a>
+      <a class="nav-link" href="#benchmarks">Benchmarks</a>
+      <a class="nav-link" href="#limits">Limitations</a>
+    </nav>
+  </aside>
+
+  <main>
+    <div class="hero" id="overview">
+      <div class="badges">
+        <span class="badge accent">MIT licensed</span>
+        <span class="badge">Node 18+</span>
+        <span class="badge">macOS</span>
+      </div>
+      <h1>recipes</h1>
+      <p class="pitch">Drive websites through their accessibility tree instead of screenshots and pixel guessing. Real logged-in Chrome, auditable JSON recipes, in-page replay — built for AI agents and humans alike.</p>
+      <div class="install-box">
+        <span><span class="prompt">$</span>npm install -g recipes-cli</span>
+      </div>
+    </div>
+
+    <div class="stats">
+      <div class="stat"><div class="v">~1.6×</div><div class="l">faster than a comparable market CLI, measured warm on identical pages</div></div>
+      <div class="stat"><div class="v">~33×</div><div class="l">fewer tokens per page-read, measured on the same page, same moment</div></div>
+      <div class="stat"><div class="v">0 steps</div><div class="l">setup required — the first command starts Chrome automatically</div></div>
+    </div>
+
+    <section class="measure">
+      <p>Vision-based browser agents look at a screenshot, guess a pixel coordinate, and click — which "succeeds" whether or not it hit the right thing. <span class="mono">recipes</span> reads the page's real accessibility tree instead, so every action either resolves against a labeled element or raises a typed error. Cheaper, faster, and failures are visible instead of silent.</p>
+    </section>
+
+    <div class="feature-grid">
+      <div class="feature"><h4>No vision, no guessing</h4><p>A page becomes a list of labeled elements — <code class="inline">e5: button "Search"</code>. Actions target the element, not an (x, y) that may or may not still be there.</p></div>
+      <div class="feature"><h4>Real Chrome, real session</h4><p>Runs against your actual, logged-in Chrome — a dedicated profile, not your default one. Sites you're already signed into just work.</p></div>
+      <div class="feature"><h4>Read before it runs</h4><p>A repeatable flow is a plain JSON file with explicit assertions. Review it before it ever touches a real account.</p></div>
+      <div class="feature"><h4>Fails loud</h4><p>A wrong assertion stops the run and says exactly what didn't match — it never reports success it didn't actually get.</p></div>
+    </div>
+
+    <section id="install">
+      <h2>Install</h2>
+      <pre class="code"><span class="c">// via npm — global command</span>
+npm install -g recipes-cli
+
+<span class="c">// or from source</span>
+git clone https://github.com/manuqwert1234/recipe.git
+cd recipe
+npm install
+npm link</pre>
+      <p class="dim">Requires Node 18+ and Google Chrome. macOS only for now — Linux/Windows Chrome paths exist in the code but are unverified.</p>
+    </section>
+
+    <section id="quickstart">
+      <h2>Quickstart</h2>
+      <p>No separate setup step — the first command starts Chrome automatically if it isn't already running.</p>
+      <pre class="code">recipes open https://example.com --session s    <span class="c">// log in here if the site needs it</span>
+recipes snapshot --session s --interactive      <span class="c">// see what's on the page, by label not pixel</span>
+recipes click e5 --session s
+recipes fill e9 "hello" --session s</pre>
+      <p>For a flow you'll repeat:</p>
+      <pre class="code">recipes record capture.json --session s --duration 15000
+recipes recipe from-network capture.json my-flow.json --site example.com
+recipes recipe show my-flow.json     <span class="c">// read exactly what it will do, first</span>
+recipes recipe run my-flow.json --session s</pre>
+    </section>
+
+    <section id="how-it-works">
+      <h2>How it works</h2>
+      <p>No server process of ours runs continuously. The only long-lived thing is Chrome itself — every CLI invocation is a fresh, short-lived process that reconnects to it.</p>
+      <figure class="diagram">
+        <svg viewBox="0 0 680 190" role="img" aria-label="The recipes CLI runs per invocation, about two hundred milliseconds, connecting over the Chrome DevTools Protocol using a session table stored on disk. It attaches to a persistent Chrome profile that stays running between commands and holds the real logged-in session against the target website.">
+          <defs>
+            <marker id="a1" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+              <path d="M0,0 L10,5 L0,10 z" fill="currentColor"/>
+            </marker>
+          </defs>
+          <rect x="20" y="60" width="150" height="56" rx="6" fill="none" stroke="currentColor" stroke-width="1.4"/>
+          <text x="95" y="84" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="12.5" fill="currentColor">recipes CLI</text>
+          <text x="95" y="100" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="10" fill="currentColor" opacity="0.6">~200–500ms, exits</text>
+
+          <line x1="60" y1="120" x2="60" y2="150" stroke="currentColor" stroke-width="1" stroke-dasharray="3 3" opacity="0.6"/>
+          <text x="60" y="164" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="9.5" fill="currentColor" opacity="0.55">sessions.json</text>
+
+          <line x1="170" y1="88" x2="248" y2="88" stroke="currentColor" stroke-width="1.4" marker-end="url(#a1)"/>
+          <text x="209" y="76" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="10" fill="currentColor">connectOverCDP</text>
+
+          <rect x="250" y="50" width="200" height="76" rx="6" fill="none" stroke="#5b4fe0" stroke-width="1.6"/>
+          <text x="350" y="76" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="12.5" fill="#5b4fe0">Chrome</text>
+          <text x="350" y="93" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="9.5" fill="#5b4fe0" opacity="0.85">dedicated profile</text>
+          <text x="350" y="107" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="9.5" fill="#5b4fe0" opacity="0.85">auto-started, stays running</text>
+
+          <line x1="450" y1="88" x2="528" y2="88" stroke="currentColor" stroke-width="1.4" marker-end="url(#a1)"/>
+          <text x="489" y="76" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="10" fill="currentColor">real session</text>
+
+          <rect x="530" y="60" width="130" height="56" rx="6" fill="none" stroke="currentColor" stroke-width="1.4"/>
+          <text x="595" y="84" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="12.5" fill="currentColor">website</text>
+          <text x="595" y="100" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="10" fill="currentColor" opacity="0.6">logged in</text>
+        </svg>
+        <figcaption>Fig. 1 — Statefulness lives in Chrome, not in the CLI process. Nothing of ours needs a lifecycle.</figcaption>
+      </figure>
+    </section>
+
+    <section id="snapshots">
+      <h2>Snapshots &amp; refs</h2>
+      <p><code class="inline">recipes snapshot</code> reads the page's accessibility tree and returns a flat list of labeled elements, each with a short ref like <code class="inline">e12</code>:</p>
+      <pre class="code">$ recipes snapshot --session s --interactive
+[e1] link "Home"
+[e2] textbox "Search"
+[e3] button "Submit"</pre>
+      <p>Refs are keyed on the underlying DOM node, not on position in a freshly-taken tree, so a ref stays valid across re-snapshots as long as the element is still alive — even across separate CLI invocations. A stale ref (page navigated since) raises a clear error instead of silently acting on the wrong element.</p>
+      <div class="callout"><b>Token budget by default</b>Every snapshot caps at 150 elements with an explicit truncation notice, and <code class="inline">--interactive</code> filters to only actionable elements — nameless links/buttons and closed native <code class="inline">&lt;select&gt;</code> options are excluded, since neither is something an agent can usefully act on by reference. Use <code class="inline">--diff</code> to see only what changed since the last snapshot, and <code class="inline">--within &lt;ref&gt;</code> to scope to a region instead of the whole page.</div>
+    </section>
+
+    <section id="recipes">
+      <h2>Recipe format</h2>
+      <p>A recipe is plain, readable JSON — not a black box. Review it with <code class="inline">recipes recipe show</code> before it ever runs against a real account.</p>
+      <pre class="code"><span class="c">// balance-check.json</span>
+{
+  <span class="k">"site"</span>: <span class="s">"example.com"</span>,
+  <span class="k">"start_url"</span>: <span class="s">"https://example.com/account"</span>,
+  <span class="k">"ttl"</span>: <span class="s">"6h"</span>,              <span class="c">// stale past this → refuses to run</span>
+  <span class="k">"auth_binding"</span>: <span class="s">"browser-session"</span>,
+  <span class="k">"steps"</span>: [
+    {
+      <span class="k">"mode"</span>: <span class="s">"fetch"</span>,
+      <span class="k">"call"</span>: <span class="s">"GET /api/balance"</span>,
+      <span class="k">"expect"</span>: { <span class="k">"status"</span>: <span class="s">200</span>, <span class="k">"json.currency"</span>: <span class="s">"USD"</span> }
+    }
+  ]
+}</pre>
+      <p>Every step's <code class="inline">expect</code> clause is checked on every run — an exact match by default, or a <code class="inline">…Contains</code> suffix for a substring match where the real value legitimately varies (a count, a name). A failed assertion stops the run immediately and reports exactly what didn't match.</p>
+    </section>
+
+    <section id="replay">
+      <h2>In-page replay</h2>
+      <p>A <code class="inline">fetch</code>-mode step replays by running <code class="inline">fetch()</code> <strong>inside</strong> the real browser tab, not from a separate HTTP client. This is not fingerprint spoofing — every request carries the browser's own, unmodified TLS/UA signature, because it <em>is</em> the browser.</p>
+      <figure class="diagram">
+        <svg viewBox="0 0 640 230" role="img" aria-label="Two paths leaving a logged-in Chrome session. A standalone client path exits the browser, uses a different TLS stack with copied cookies, and can be challenged by anti-bot protection. An in-page fetch path stays inside the browser's JavaScript context, inherits the real TLS handshake and cookie jar, and passes.">
+          <defs>
+            <marker id="a2" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+              <path d="M0,0 L10,5 L0,10 z" fill="currentColor"/>
+            </marker>
+          </defs>
+          <rect x="230" y="14" width="180" height="44" rx="6" fill="none" stroke="currentColor" stroke-width="1.4"/>
+          <text x="320" y="32" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="12" fill="currentColor">Chrome</text>
+          <text x="320" y="47" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="10" fill="currentColor" opacity="0.6">logged-in session</text>
+
+          <path d="M280,58 C220,100 160,110 130,140" fill="none" stroke="#b5533c" stroke-width="1.4" stroke-dasharray="4 3" marker-end="url(#a2)"/>
+          <text x="128" y="118" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="10.5" fill="#b5533c">leaves the browser</text>
+          <rect x="38" y="146" width="180" height="34" rx="6" fill="none" stroke="#b5533c" stroke-width="1.4"/>
+          <text x="128" y="167" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="12" fill="#b5533c">standalone client</text>
+          <line x1="128" y1="180" x2="128" y2="204" stroke="#b5533c" stroke-width="1.4" marker-end="url(#a2)"/>
+          <text x="128" y="222" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="12" fill="#b5533c">different fingerprint</text>
+
+          <path d="M360,58 C440,100 500,110 530,140" fill="none" stroke="#2a9d5c" stroke-width="1.6" marker-end="url(#a2)"/>
+          <text x="533" y="118" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="10.5" fill="#2a9d5c">stays inside the browser</text>
+          <rect x="443" y="146" width="180" height="34" rx="6" fill="none" stroke="#2a9d5c" stroke-width="1.6"/>
+          <text x="533" y="167" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="12" fill="#2a9d5c">page.evaluate(fetch)</text>
+          <line x1="533" y1="180" x2="533" y2="204" stroke="#2a9d5c" stroke-width="1.6" marker-end="url(#a2)"/>
+          <text x="533" y="222" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="12" fill="#2a9d5c">✓ same fingerprint</text>
+        </svg>
+        <figcaption>Fig. 2 — Measured directly: <code class="inline">page.evaluate(fetch)</code> and a standalone client produce different TLS fingerprints from the same Chrome process. Only the in-page path is used for replay.</figcaption>
+      </figure>
+      <div class="callout warn"><b>Read this before pointing it at a real account</b>Automating your own logged-in account is not automatically fine everywhere just because nothing is spoofed — plenty of sites' terms of service restrict automated access to your own account too (banking and ticketing platforms especially). Check a site's ToS before using this beyond low-stakes things.</div>
+    </section>
+
+    <section id="modes">
+      <h2><code class="inline">fetch</code> vs <code class="inline">dom</code> mode</h2>
+      <p>Not every endpoint is <code class="inline">fetch</code>-replayable — some sites protect internal APIs with a rotating, per-request signed token that can't be captured once and reused. <code class="inline">dom</code> mode is the fallback: locate an element by role + name (stable across reruns, unlike a raw ref), then read, click, or fill it — the same trusted-input engine as the core loop, not a second implementation.</p>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Mode</th><th>When</th><th>Speed</th></tr></thead>
+          <tbody>
+            <tr><td><code class="inline">fetch</code></td><td>default whenever a matching endpoint was observed on the wire</td><td>fastest — no DOM touched</td></tr>
+            <tr><td><code class="inline">dom</code></td><td>fallback for signed-token requests, or content that only exists in the rendered page</td><td>ref-based interaction</td></tr>
+            <tr><td><code class="inline">standalone</code></td><td>only where auth is provably not browser-bound</td><td>outside the browser entirely</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section id="commands">
+      <h2>Command reference</h2>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Command</th><th>What it does</th></tr></thead>
+          <tbody>
+            <tr><td><code class="inline">recipes open &lt;url&gt; --session &lt;s&gt;</code></td><td>Opens or reuses a tab bound to a session name. Starts Chrome automatically if needed.</td></tr>
+            <tr><td><code class="inline">recipes snapshot [--interactive] [--diff] [--within &lt;ref&gt;]</code></td><td>Reads the page as labeled elements instead of a screenshot.</td></tr>
+            <tr><td><code class="inline">recipes click &lt;ref&gt;</code> / <code class="inline">recipes fill &lt;ref&gt; &lt;text&gt;</code></td><td>Trusted-input interaction, not a synthetic JS event.</td></tr>
+            <tr><td><code class="inline">recipes needs-human</code></td><td>Checks for a login wall or bot challenge — never solved automatically.</td></tr>
+            <tr><td><code class="inline">recipes record &lt;out&gt; --duration &lt;ms&gt;</code></td><td>Captures real XHR/Fetch traffic while you use the page.</td></tr>
+            <tr><td><code class="inline">recipes recipe from-network &lt;capture&gt; &lt;out&gt; --site &lt;s&gt;</code></td><td>Generates a draft recipe from a capture — review before trusting it.</td></tr>
+            <tr><td><code class="inline">recipes recipe show &lt;file&gt;</code></td><td>Human-readable dry-run of exactly what a recipe will do.</td></tr>
+            <tr><td><code class="inline">recipes recipe run &lt;file&gt; [--dry-run]</code></td><td>Replays a recipe, verifying every assertion, failing loud on mismatch.</td></tr>
+            <tr><td><code class="inline">recipes recipe watch &lt;file&gt; [--interval &lt;s&gt;]</code></td><td>Runs a recipe and reports only when the result actually changed — cron-friendly with no interval.</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="dim">Every command supports <code class="inline">--json</code> for structured output. Full reference, written for an agent to load directly: <a href="../SKILL.md">SKILL.md</a>.</p>
+    </section>
+
+    <section id="mcp">
+      <h2>MCP integration</h2>
+      <p>The same engine is also exposed as 10 typed MCP tools — calling straight into the same code the CLI calls, not a second implementation.</p>
+      <pre class="code">claude mcp add recipes -- node /path/to/recipe/mcp/server.js</pre>
+      <p class="dim">Everything the CLI can do — open, snapshot, click, fill, run and watch recipes — is available as a typed tool with a schema, for any MCP-aware agent.</p>
+    </section>
+
+    <section id="benchmarks">
+      <h2>Benchmarks</h2>
+      <p>Measured live, on real pages, against a real installed market tool (<code class="inline">@playwright/cli</code>) — not simulated, not cited from elsewhere.</p>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th></th><th>recipes</th><th>@playwright/cli</th></tr></thead>
+          <tbody>
+            <tr><td>Speed, warm (avg of 3 runs)</td><td>~490ms</td><td>~790ms — 1.6× slower</td></tr>
+            <tr><td>Tokens, identical page</td><td>4,202 chars</td><td>137,444 chars — ~33× more</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="dim">The token gap isn't because the underlying accessibility walk collects less data — recipes' own uncapped element count on that page (2,149) is the same order of magnitude as the comparison tool's (2,022 lines). The difference is a default 150-element cap with an explicit truncation notice, plus a purpose-built interactive filter — neither of which the comparison tool offers by default.</p>
+      <p><a href="https://claude.ai/code/artifact/7e00a8b8-2aa0-4fe7-a845-eb797290e9f0">Full benchmark writeup, with charts →</a></p>
+    </section>
+
+    <section id="limits">
+      <h2>Limitations</h2>
+      <ul class="measure">
+        <li>Canvas/WebGL apps (Figma, maps) have no useful accessibility tree — not a good fit for this tool.</li>
+        <li>Sites with no accessible labels ("div soup") produce technically-correct, practically-useless snapshots.</li>
+        <li><code class="inline">--diff</code> tracks the accessibility tree's membership and content, not pure visual state — a native <code class="inline">&lt;select&gt;</code> toggling open won't show as a change, since its options were already in the tree.</li>
+        <li>macOS only, currently — Linux/Windows Chrome paths are unverified.</li>
+        <li>No automated browser-driven test suite yet — <code class="inline">npm test</code> covers the logic that doesn't need Chrome; everything else is verified through live testing (see the build log).</li>
+      </ul>
+    </section>
+
+    <footer>
+      <span>recipes</span>
+      <span><a href="https://github.com/manuqwert1234/recipe">github.com/manuqwert1234/recipe</a></span>
+    </footer>
+  </main>
+</div>
+</body>
+</html>
