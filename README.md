@@ -2,7 +2,7 @@
 
 **Drive websites through their accessibility tree instead of screenshots and pixel guessing.** Real logged-in Chrome, auditable JSON recipes, in-page replay — built for AI agents and humans alike.
 
-📖 **[Full documentation, with diagrams and benchmarks](https://claude.ai/code/artifact/bf0eb20b-a0e2-4152-b3d1-21abfdc740e0)**
+📖 **[Full documentation, with diagrams and benchmarks](https://manuqwert1234.github.io/recipe/)**
 
 ```
 npm install -g recipes-cli
@@ -21,7 +21,7 @@ Vision-based browser agents look at a screenshot, guess a pixel coordinate, and 
 - **Recipes you can read before they run.** A repeatable flow is a plain JSON file with explicit assertions. Review it with `recipes recipe show` before it ever touches a real account.
 - **Fails loud.** A wrong assertion stops the run and says exactly what didn't match — it never reports success it didn't actually get.
 
-Measured against a comparable market CLI, on identical pages: **~1.6x faster**, **~33x fewer tokens per page-read**. Full methodology and honest caveats in the [docs](https://claude.ai/code/artifact/bf0eb20b-a0e2-4152-b3d1-21abfdc740e0#benchmarks).
+Measured against a comparable market CLI, on identical pages: **~1.6x faster**, **~33x fewer tokens per page-read**. Full methodology and honest caveats in the [docs](https://manuqwert1234.github.io/recipe/#benchmarks) and the [full benchmark writeup](https://manuqwert1234.github.io/recipe/benchmarks.html).
 
 ## Install
 
@@ -84,7 +84,9 @@ Separately: **this covers "is it technically evasion," not "is it allowed."** Au
 
 ## More
 
-- [Full documentation](https://claude.ai/code/artifact/bf0eb20b-a0e2-4152-b3d1-21abfdc740e0) — architecture, recipe format, command reference, benchmarks.
+- [Full documentation](https://manuqwert1234.github.io/recipe/) — architecture, recipe format, command reference, benchmarks.
+- [Design doc](https://manuqwert1234.github.io/recipe/design.html) — the decisions made before any of this was built, including the alternatives considered and rejected.
+- [Benchmark writeup](https://manuqwert1234.github.io/recipe/benchmarks.html) — the full charts behind the numbers above.
 - [`SKILL.md`](SKILL.md) — command reference written for an AI agent to load directly.
 - [`BUILDLOG.md`](BUILDLOG.md) — the complete, honest build history: every bug found, every claim tested against real sites.
 

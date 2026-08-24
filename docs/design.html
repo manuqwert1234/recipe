@@ -1,0 +1,914 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>recipes — design doc</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Spectral:ital,wght@0,400;0,500;0,600;1,400&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --paper: #f3f5f8;
+    --paper-raised: #ffffff;
+    --ink: #131b24;
+    --ink-dim: #4b5866;
+    --blueprint: #2557a7;
+    --blueprint-dim: #5c7ba8;
+    --signal: #b85c1a;
+    --signal-bg: #fbeee1;
+    --wire: #147d74;
+    --wire-bg: #e2f2ef;
+    --line: #ccd4dd;
+    --line-strong: #a9b4c0;
+    --code-bg: #eaeef3;
+    --shadow: 0 1px 2px rgba(19,27,36,0.06), 0 8px 24px rgba(19,27,36,0.05);
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --paper: #0e1520;
+      --paper-raised: #141c29;
+      --ink: #dde4ec;
+      --ink-dim: #8f9dac;
+      --blueprint: #74a8e2;
+      --blueprint-dim: #5b7ea8;
+      --signal: #e0985a;
+      --signal-bg: #2c2013;
+      --wire: #55c7ba;
+      --wire-bg: #102622;
+      --line: #263140;
+      --line-strong: #354258;
+      --code-bg: #101825;
+      --shadow: 0 1px 2px rgba(0,0,0,0.3), 0 8px 24px rgba(0,0,0,0.35);
+    }
+  }
+  :root[data-theme="dark"] {
+    --paper: #0e1520;
+    --paper-raised: #141c29;
+    --ink: #dde4ec;
+    --ink-dim: #8f9dac;
+    --blueprint: #74a8e2;
+    --blueprint-dim: #5b7ea8;
+    --signal: #e0985a;
+    --signal-bg: #2c2013;
+    --wire: #55c7ba;
+    --wire-bg: #102622;
+    --line: #263140;
+    --line-strong: #354258;
+    --code-bg: #101825;
+    --shadow: 0 1px 2px rgba(0,0,0,0.3), 0 8px 24px rgba(0,0,0,0.35);
+  }
+
+  * { box-sizing: border-box; }
+  html { -webkit-text-size-adjust: 100%; }
+
+  body {
+    margin: 0;
+    background: var(--paper);
+    color: var(--ink);
+    font-family: "Spectral", Georgia, "Times New Roman", serif;
+    font-size: 17px;
+    line-height: 1.7;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .mono {
+    font-family: "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+  }
+
+  a { color: var(--blueprint); text-decoration-thickness: 1px; text-underline-offset: 2px; }
+  a:focus-visible, button:focus-visible, summary:focus-visible {
+    outline: 2px solid var(--blueprint);
+    outline-offset: 2px;
+  }
+
+  img, svg { max-width: 100%; height: auto; }
+
+  /* ---------- shell ---------- */
+  .sheet {
+    max-width: 1040px;
+    margin: 0 auto;
+    padding: 0 24px 120px;
+  }
+
+  /* ---------- title block ---------- */
+  .titleblock {
+    border: 1px solid var(--line-strong);
+    border-radius: 2px;
+    margin-top: 40px;
+    padding: 22px 26px;
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 10px 24px;
+    background: var(--paper-raised);
+    box-shadow: var(--shadow);
+  }
+  .titleblock h1 {
+    grid-column: 1 / -1;
+    margin: 0;
+    font-family: "IBM Plex Mono", monospace;
+    font-weight: 600;
+    font-size: clamp(2rem, 5vw, 2.6rem);
+    letter-spacing: -0.01em;
+    text-wrap: balance;
+  }
+  .titleblock .tagline {
+    grid-column: 1 / -1;
+    margin: 0;
+    color: var(--ink-dim);
+    font-size: 1.05rem;
+    max-width: 60ch;
+  }
+  .meta-row {
+    grid-column: 1 / -1;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px 22px;
+    margin-top: 6px;
+    padding-top: 14px;
+    border-top: 1px solid var(--line);
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.07em;
+    color: var(--ink-dim);
+  }
+  .meta-row b { color: var(--ink); font-weight: 600; }
+
+  /* ---------- eyebrow / section headers ---------- */
+  .eyebrow {
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.09em;
+    color: var(--blueprint);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin: 0 0 8px;
+  }
+  .eyebrow .num {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 22px;
+    height: 22px;
+    padding: 0 5px;
+    border: 1px solid var(--blueprint);
+    border-radius: 2px;
+    color: var(--blueprint);
+    font-weight: 600;
+  }
+
+  section { margin-top: 64px; }
+  section > h2 {
+    font-family: "IBM Plex Mono", monospace;
+    font-weight: 600;
+    font-size: 1.5rem;
+    margin: 0 0 6px;
+    text-wrap: balance;
+    letter-spacing: -0.005em;
+  }
+  .section-intro {
+    max-width: 68ch;
+    color: var(--ink-dim);
+    margin: 6px 0 28px;
+    font-size: 1.02rem;
+  }
+  .prose { max-width: 68ch; }
+  .prose p { margin: 0 0 1.1em; }
+  .prose p:last-child { margin-bottom: 0; }
+
+  hr.spec {
+    border: none;
+    border-top: 1px solid var(--line);
+    margin: 64px 0 0;
+  }
+
+  /* ---------- contents ---------- */
+  .toc {
+    margin-top: 34px;
+    border: 1px solid var(--line);
+    border-radius: 2px;
+    padding: 18px 22px;
+    background: var(--paper-raised);
+  }
+  .toc-label {
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--ink-dim);
+    margin: 0 0 10px;
+  }
+  .toc ol {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    columns: 2;
+    column-gap: 28px;
+  }
+  .toc li { break-inside: avoid; margin-bottom: 6px; }
+  .toc a {
+    color: var(--ink);
+    text-decoration: none;
+    font-size: 0.94rem;
+    display: flex;
+    gap: 8px;
+  }
+  .toc a:hover { color: var(--blueprint); }
+  .toc .n { color: var(--blueprint-dim); font-family: "IBM Plex Mono", monospace; font-size: 0.82rem; }
+
+  /* ---------- decision cards ---------- */
+  .decision {
+    border: 1px solid var(--line);
+    border-radius: 3px;
+    overflow: hidden;
+    margin-bottom: 18px;
+    background: var(--paper-raised);
+  }
+  .decision-head {
+    padding: 14px 20px;
+    border-bottom: 1px solid var(--line);
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+  .decision-head h3 {
+    margin: 0;
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 1rem;
+    font-weight: 600;
+  }
+  .options {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1px;
+    background: var(--line);
+  }
+  .option { background: var(--paper-raised); padding: 16px 20px; }
+  .option.rejected { background: color-mix(in srgb, var(--signal-bg) 55%, var(--paper-raised)); }
+  .option.chosen { background: color-mix(in srgb, var(--wire-bg) 55%, var(--paper-raised)); }
+  .stamp {
+    display: inline-block;
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 0.68rem;
+    font-weight: 600;
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+    padding: 3px 9px;
+    border-radius: 2px;
+    margin-bottom: 10px;
+    transform: rotate(-1.5deg);
+  }
+  .stamp.rejected { color: var(--signal); border: 1.5px solid var(--signal); }
+  .stamp.chosen { color: var(--wire); border: 1.5px solid var(--wire); }
+  .option h4 { margin: 0 0 6px; font-size: 1rem; font-family: "IBM Plex Mono", monospace; font-weight: 600; }
+  .option p { margin: 0; font-size: 0.95rem; color: var(--ink); }
+  .option p + p { margin-top: 8px; }
+  @media (max-width: 640px) {
+    .options { grid-template-columns: 1fr; }
+  }
+
+  .note {
+    margin: 16px 0 0;
+    padding: 12px 16px;
+    border-left: 3px solid var(--signal);
+    background: var(--signal-bg);
+    border-radius: 0 2px 2px 0;
+    font-size: 0.94rem;
+  }
+  .note b { font-family: "IBM Plex Mono", monospace; font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.06em; color: var(--signal); display: block; margin-bottom: 4px; }
+
+  /* ---------- diagram panels ---------- */
+  .panel {
+    border: 1px solid var(--line);
+    border-radius: 3px;
+    background:
+      linear-gradient(var(--line) 1px, transparent 1px) 0 0 / 28px 28px,
+      linear-gradient(90deg, var(--line) 1px, transparent 1px) 0 0 / 28px 28px,
+      var(--paper-raised);
+    background-blend-mode: normal;
+    opacity: 1;
+    padding: 22px 20px 14px;
+    margin: 28px 0;
+  }
+  .panel svg { display: block; margin: 0 auto; color: var(--ink); }
+  .panel .cap {
+    margin: 14px 2px 0;
+    font-size: 0.86rem;
+    color: var(--ink-dim);
+    border-top: 1px solid var(--line);
+    padding-top: 10px;
+  }
+
+  /* ---------- tables ---------- */
+  .table-wrap { overflow-x: auto; margin: 18px 0; }
+  table {
+    border-collapse: collapse;
+    width: 100%;
+    font-size: 0.92rem;
+    min-width: 480px;
+  }
+  th, td {
+    text-align: left;
+    padding: 10px 14px;
+    border-bottom: 1px solid var(--line);
+    vertical-align: top;
+  }
+  thead th {
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--ink-dim);
+    border-bottom: 1.5px solid var(--line-strong);
+  }
+  td.mono, th.mono { font-family: "IBM Plex Mono", monospace; font-size: 0.85rem; }
+  tbody tr:last-child td { border-bottom: none; }
+  .ok { color: var(--wire); }
+  .no { color: var(--signal); }
+
+  /* ---------- phase list ---------- */
+  .phase {
+    display: grid;
+    grid-template-columns: 44px 1fr;
+    gap: 16px;
+    padding: 16px 0;
+    border-bottom: 1px solid var(--line);
+  }
+  .phase:last-child { border-bottom: none; }
+  .phase .pnum {
+    font-family: "IBM Plex Mono", monospace;
+    font-weight: 600;
+    font-size: 1.1rem;
+    color: var(--blueprint);
+    line-height: 1.4;
+  }
+  .phase h4 { margin: 0 0 4px; font-size: 1.02rem; font-family: "IBM Plex Mono", monospace; font-weight: 600;}
+  .phase p { margin: 0; font-size: 0.95rem; color: var(--ink-dim); }
+  .phase .done {
+    margin-top: 6px;
+    font-size: 0.85rem;
+    color: var(--wire);
+  }
+  .phase .done b { font-family: "IBM Plex Mono", monospace; text-transform: uppercase; font-size: 0.68rem; letter-spacing: 0.06em; margin-right: 6px;}
+
+  /* ---------- code block ---------- */
+  pre.code {
+    margin: 18px 0;
+    padding: 18px 20px;
+    background: var(--code-bg);
+    border: 1px solid var(--line);
+    border-radius: 3px;
+    overflow-x: auto;
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 0.82rem;
+    line-height: 1.65;
+  }
+  pre.code .k { color: var(--blueprint); }
+  pre.code .s { color: var(--wire); }
+  pre.code .c { color: var(--ink-dim); font-style: italic; }
+
+  /* ---------- limits list ---------- */
+  .limits { padding: 0; margin: 0; list-style: none; }
+  .limits li {
+    padding: 12px 0;
+    border-bottom: 1px solid var(--line);
+    display: grid;
+    grid-template-columns: 20px 1fr;
+    gap: 10px;
+    font-size: 0.95rem;
+  }
+  .limits li:last-child { border-bottom: none; }
+  .limits li::before {
+    content: "△";
+    color: var(--signal);
+    font-size: 0.85rem;
+  }
+
+  footer {
+    margin-top: 90px;
+    padding-top: 20px;
+    border-top: 1px solid var(--line);
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 0.75rem;
+    color: var(--ink-dim);
+    display: flex;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    * { scroll-behavior: auto !important; }
+  }
+</style>
+</head>
+<body>
+
+<div class="sheet">
+
+  <div class="titleblock">
+    <h1>recipes</h1>
+    <p class="tagline">Design doc — a CLI that lets an agent operate websites through their semantics instead of their pixels, and replays them later without leaving the browser that logged in.</p>
+    <div class="meta-row">
+      <span>DOC&nbsp;<b>001</b></span>
+      <span>STATUS&nbsp;<b>built · verified live on a real account</b></span>
+      <span>SCOPE&nbsp;<b>CLI + recipe format</b></span>
+      <span>DEPENDS&nbsp;<b>Playwright (pinned)</b></span>
+    </div>
+  </div>
+
+  <nav class="toc" aria-label="Contents">
+    <p class="toc-label">Contents</p>
+    <ol>
+      <li><a href="#problem"><span class="n">01</span> The problem</a></li>
+      <li><a href="#decisions"><span class="n">02</span> Build decisions</a></li>
+      <li><a href="#wedge"><span class="n">03</span> The wedge</a></li>
+      <li><a href="#architecture"><span class="n">04</span> Architecture</a></li>
+      <li><a href="#format"><span class="n">05</span> Recipe format</a></li>
+      <li><a href="#phases"><span class="n">06</span> Build phases</a></li>
+      <li><a href="#install"><span class="n">07</span> What you install</a></li>
+      <li><a href="#surfaces"><span class="n">08</span> Integration surfaces</a></li>
+      <li><a href="#verify"><span class="n">09</span> Verification &amp; benchmark</a></li>
+      <li><a href="#limits"><span class="n">10</span> Known limits</a></li>
+      <li><a href="#postbuild"><span class="n">11</span> Built — what changed</a></li>
+    </ol>
+  </nav>
+
+  <!-- ===================== 01 PROBLEM ===================== -->
+  <section id="problem">
+    <p class="eyebrow"><span class="num">01</span> The problem</p>
+    <h2>Screenshots don't fail — they lie</h2>
+    <p class="section-intro">Today an agent drives a site by taking a screenshot, guessing pixel coordinates, and clicking. The failure mode isn't that this is slow. It's that <code class="mono">click(847, 312)</code> always <em>succeeds</em> — whether or not it hit anything — so a wrong click looks identical to a right one until three steps later.</p>
+
+    <figure class="panel">
+      <svg viewBox="0 0 640 210" role="img" aria-label="Comparison: the old screenshot-and-guess loop where a click can silently miss, versus the new semantic loop where an action either resolves against a labeled element or fails with a typed error.">
+        <defs>
+          <marker id="a1" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+            <path d="M0,0 L10,5 L0,10 z" fill="currentColor"/>
+          </marker>
+        </defs>
+        <!-- old loop -->
+        <text x="150" y="22" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="11" letter-spacing="1" fill="currentColor" opacity="0.6">TODAY</text>
+        <g font-family="IBM Plex Mono, monospace" font-size="12">
+          <rect x="60" y="34" width="180" height="30" fill="none" stroke="currentColor" stroke-width="1"/>
+          <text x="150" y="53" text-anchor="middle" fill="currentColor">screenshot</text>
+          <line x1="150" y1="64" x2="150" y2="84" stroke="currentColor" marker-end="url(#a1)"/>
+          <rect x="60" y="86" width="180" height="30" fill="none" stroke="currentColor" stroke-width="1"/>
+          <text x="150" y="105" text-anchor="middle" fill="currentColor">guess (x, y)</text>
+          <line x1="150" y1="116" x2="150" y2="136" stroke="currentColor" marker-end="url(#a1)"/>
+          <rect x="60" y="138" width="180" height="34" fill="none" stroke="#b85c1a" stroke-width="1.4"/>
+          <text x="150" y="154" text-anchor="middle" fill="#b85c1a">click(x, y)</text>
+          <text x="150" y="167" text-anchor="middle" fill="#b85c1a" font-size="10.5">"succeeds" — even off-target</text>
+        </g>
+
+        <!-- divider -->
+        <line x1="320" y1="30" x2="320" y2="190" stroke="currentColor" stroke-width="1" opacity="0.25"/>
+
+        <!-- new loop -->
+        <text x="490" y="22" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="11" letter-spacing="1" fill="currentColor" opacity="0.6">RECIPES</text>
+        <g font-family="IBM Plex Mono, monospace" font-size="12">
+          <rect x="400" y="34" width="180" height="30" fill="none" stroke="currentColor" stroke-width="1"/>
+          <text x="490" y="53" text-anchor="middle" fill="currentColor">snapshot (a11y refs)</text>
+          <line x1="490" y1="64" x2="490" y2="84" stroke="currentColor" marker-end="url(#a1)"/>
+          <rect x="400" y="86" width="180" height="30" fill="none" stroke="currentColor" stroke-width="1"/>
+          <text x="490" y="105" text-anchor="middle" fill="currentColor">click(@ref12)</text>
+          <line x1="490" y1="116" x2="490" y2="136" stroke="currentColor" marker-end="url(#a1)"/>
+          <rect x="400" y="138" width="180" height="34" fill="none" stroke="#147d74" stroke-width="1.4"/>
+          <text x="490" y="154" text-anchor="middle" fill="#147d74">resolved, or typed error</text>
+          <text x="490" y="167" text-anchor="middle" fill="#147d74" font-size="10.5">"stale ref" is a real signal</text>
+        </g>
+      </svg>
+      <p class="cap">Fig. 1 — A coordinate click cannot distinguish a hit from a miss. A ref either resolves against a labeled element or raises a typed, retryable error.</p>
+    </figure>
+
+    <div class="prose">
+      <p>The fix generalizes further than swapping pixels for an accessibility tree: even a resolved ref and a 200 response can both report success while the actual state change never happened. That principle — verify the outcome, not just the action — runs through the whole design and shows up again in <a href="#format">§05</a>.</p>
+    </div>
+  </section>
+
+  <hr class="spec">
+
+  <!-- ===================== 02 DECISIONS ===================== -->
+  <section id="decisions">
+    <p class="eyebrow"><span class="num">02</span> Build decisions</p>
+    <h2>What was considered, and why it lost</h2>
+    <p class="section-intro">Three build-path proposals were argued in full before this one. Recording what lost — and exactly why — is what keeps them from being re-litigated later.</p>
+
+    <div class="decision">
+      <div class="decision-head"><h3>Which engine drives the browser</h3></div>
+      <div class="options">
+        <div class="option rejected">
+          <span class="stamp rejected">Rejected</span>
+          <h4>Wrap vercel-labs/agent-browser</h4>
+          <p>An existing CLI already does refs, sessions, and network capture. But its command surface is young and will churn — a bad foundation for something that touches logged-in accounts unattended.</p>
+        </div>
+        <div class="option rejected">
+          <span class="stamp rejected">Rejected</span>
+          <h4>Fully standalone, raw CDP</h4>
+          <p>Own every line, zero dependencies. Justified on paper by <code class="mono">Page.createIsolatedWorld</code> dodging page CSP — a justification that collapsed twice: Playwright ships <code class="mono">bypassCSP: true</code> outright, and replay is same-origin by definition, so CSP was never going to bite. What remained was "no install step," which doesn't buy months of rebuilt CDP plumbing.</p>
+        </div>
+      </div>
+      <div class="options" style="grid-template-columns: 1fr;">
+        <div class="option chosen">
+          <span class="stamp chosen">Chosen</span>
+          <h4>Own CLI, Playwright as a pinned library</h4>
+          <p>A stable, versioned API from Microsoft — and what agent-browser itself runs on underneath. Full CDP access is still available via <code class="mono">context.newCDPSession(page)</code>, so nothing is given up, only the obligation to maintain the plumbing. Everything that's actually new to this project — the recipe format, verification, in-page replay, the token-tuned snapshot engine — starts in week one instead of month three.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="decision">
+      <div class="decision-head"><h3>How state survives between CLI calls</h3></div>
+      <div class="options" style="grid-template-columns: 1fr;">
+        <div class="option chosen">
+          <span class="stamp chosen">Chosen</span>
+          <h4>No daemon — Chrome holds the state</h4>
+          <p>A CLI process exits in milliseconds; a naive design needs a background daemon to keep a tab alive between calls, and daemon lifecycle bugs are where tools in this category actually die. Playwright's <code class="mono">connectOverCDP</code> removes the need entirely: Chrome is started once and stays running: each invocation reconnects, resolves its tab from a small <code class="mono">sessions.json</code> keyed by CDP <code class="mono">targetId</code>, acts, and disconnects. No socket, no orphaned process, no lifecycle to get wrong.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="decision">
+      <div class="decision-head"><h3>Which browser, and how it's reached</h3></div>
+      <div class="options" style="grid-template-columns: 1fr;">
+        <div class="option chosen">
+          <span class="stamp chosen">Chosen</span>
+          <h4>Your installed Chrome, dedicated persistent profile</h4>
+          <p>Chrome 136+ ignores <code class="mono">--remote-debugging-port</code> against the <em>default</em> profile directory — verified against Chrome 151 on this machine. So Chrome is launched with <code class="mono">channel: 'chrome'</code> (your real binary, no 300&nbsp;MB Chromium download) against a dedicated profile at <code class="mono">~/.web/profile</code>. You log into each site once; cookies persist indefinitely after that. Real Chrome means a real TLS fingerprint and UA — which is the entire premise of <a href="#wedge">§03</a>.</p>
+        </div>
+      </div>
+      <div class="note"><b>On Cloudflare, explicitly</b> When a Turnstile challenge appears, the tool surfaces <code class="mono">needs-human</code> rather than attempting it. You click once, in a visible window; clearance then persists for the Challenge Passage. Input is dispatched as trusted CDP events, never a synthetic <code class="mono">.click()</code> — challenge widgets specifically require a trusted event. No fingerprint spoofing, no UA forgery, no CAPTCHA-solving service, anywhere in this design.</p></div>
+    </div>
+
+    <div class="decision">
+      <div class="decision-head"><h3>The trap: two APIs that look interchangeable and aren't</h3></div>
+      <div class="options">
+        <div class="option rejected">
+          <span class="stamp rejected">Banned</span>
+          <h4><code class="mono">page.request</code></h4>
+          <p>Playwright's <code class="mono">APIRequestContext</code> shares the page's cookies — which makes it look like the right tool for a fast replay. It isn't: it sends from <strong>Node's <code class="mono">http</code>/<code class="mono">https</code> modules</strong>, not the browser's TLS stack. It would fail on Cloudflare exactly like a standalone client, for the exact same reason.</p>
+        </div>
+        <div class="option chosen">
+          <span class="stamp chosen">Required</span>
+          <h4><code class="mono">page.evaluate(() =&gt; fetch(...))</code></h4>
+          <p>Runs inside the page's own JavaScript context. Same TLS handshake, same UA, same cookie jar, same IP as the browser that's already logged in. This is the only replay path that inherits the site's trust in the session rather than merely its cookies. Encoded as a lint rule in the codebase, and proved empirically in <a href="#verify">§09</a> before any engine code is written.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <hr class="spec">
+
+  <!-- ===================== 03 WEDGE ===================== -->
+  <section id="wedge">
+    <p class="eyebrow"><span class="num">03</span> The wedge</p>
+    <h2>Why this and not a generated API client</h2>
+    <p class="section-intro">Vercel's own <code class="mono">agent-browser skills get derive-client</code> already records a HAR and generates a standalone API client for a site — one that, in its own documentation, <em>"skips the browser entirely."</em> That phrase is where this project's whole reason to exist lives.</p>
+
+    <figure class="panel">
+      <svg viewBox="0 0 640 260" role="img" aria-label="Two paths leaving the logged-in Chrome session. A standalone client path exits the browser, uses Node's own TLS stack with copied cookies, and is challenged by Cloudflare. An in-page fetch path stays inside the browser's JavaScript context, inherits the real TLS handshake and cookie jar, and passes.">
+        <defs>
+          <marker id="a2" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+            <path d="M0,0 L10,5 L0,10 z" fill="currentColor"/>
+          </marker>
+        </defs>
+        <!-- chrome box -->
+        <rect x="230" y="14" width="180" height="44" rx="2" fill="none" stroke="currentColor" stroke-width="1.4"/>
+        <text x="320" y="32" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="12" fill="currentColor">Chrome</text>
+        <text x="320" y="47" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="10" fill="currentColor" opacity="0.65">logged-in session, real TLS</text>
+
+        <!-- path A: standalone -->
+        <path d="M280,58 C220,100 160,110 130,140" fill="none" stroke="#b85c1a" stroke-width="1.4" stroke-dasharray="4 3" marker-end="url(#a2)"/>
+        <text x="128" y="118" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="10.5" fill="#b85c1a">leaves the browser</text>
+        <text x="128" y="131" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="10.5" fill="#b85c1a">Node TLS + copied cookies</text>
+        <rect x="38" y="146" width="180" height="34" fill="none" stroke="#b85c1a" stroke-width="1.4"/>
+        <text x="128" y="167" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="12" fill="#b85c1a">standalone client</text>
+        <line x1="128" y1="180" x2="128" y2="204" stroke="#b85c1a" stroke-width="1.4" marker-end="url(#a2)"/>
+        <text x="128" y="222" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="12" fill="#b85c1a">✕ challenged</text>
+
+        <!-- path B: in-page fetch -->
+        <path d="M360,58 C440,100 500,110 530,140" fill="none" stroke="#147d74" stroke-width="1.6" marker-end="url(#a2)"/>
+        <text x="533" y="118" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="10.5" fill="#147d74">stays inside the browser</text>
+        <text x="533" y="131" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="10.5" fill="#147d74">same TLS + UA + cookies</text>
+        <rect x="443" y="146" width="180" height="34" fill="none" stroke="#147d74" stroke-width="1.6"/>
+        <text x="533" y="167" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="12" fill="#147d74">page.evaluate(fetch)</text>
+        <line x1="533" y1="180" x2="533" y2="204" stroke="#147d74" stroke-width="1.6" marker-end="url(#a2)"/>
+        <text x="533" y="222" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="12" fill="#147d74">✓ passes</text>
+      </svg>
+      <p class="cap">Fig. 2 — Cloudflare binds <code class="mono">cf_clearance</code> to IP, User-Agent, and TLS characteristics. Leaving the browser process necessarily changes the last one.</p>
+    </figure>
+
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th></th><th>derive-client</th><th>recipes</th></tr></thead>
+        <tbody>
+          <tr><td>Replay context</td><td>standalone HTTP client</td><td>in-page <code class="mono">fetch()</code></td></tr>
+          <tr><td>Auth inheritance</td><td>copied headers/cookies — rot, rebind</td><td>ambient, always current</td></tr>
+          <tr><td>Cloudflare-protected site</td><td class="no">breaks without impersonation</td><td class="ok">works</td></tr>
+          <tr><td>Degrades over time</td><td class="no">yes — arms race</td><td class="ok">no</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="prose" style="max-width:68ch; color:var(--ink-dim); font-size:0.95rem;">Positioning, stated plainly: this is derive-client for the sites where leaving the browser breaks the very auth you're trying to replay. Not a competitor — a recipe prefers a standalone call wherever one genuinely still works.</p>
+  </section>
+
+  <hr class="spec">
+
+  <!-- ===================== 04 ARCHITECTURE ===================== -->
+  <section id="architecture">
+    <p class="eyebrow"><span class="num">04</span> Architecture</p>
+    <h2>One reconnecting CLI, one long-lived Chrome</h2>
+    <p class="section-intro">No server process of ours runs continuously. The only long-lived thing is Chrome itself.</p>
+
+    <figure class="panel">
+      <svg viewBox="0 0 680 190" role="img" aria-label="The recipes CLI runs per invocation, taking about two hundred milliseconds, and connects over the Chrome DevTools Protocol using a target id stored in sessions dot json. It attaches to a persistent Chrome profile that was started once and stays running, which holds the real logged-in session against the website.">
+        <defs>
+          <marker id="a3" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+            <path d="M0,0 L10,5 L0,10 z" fill="currentColor"/>
+          </marker>
+        </defs>
+        <rect x="20" y="60" width="150" height="56" fill="none" stroke="currentColor" stroke-width="1.4"/>
+        <text x="95" y="84" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="12.5" fill="currentColor">recipes CLI</text>
+        <text x="95" y="100" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="10" fill="currentColor" opacity="0.65">~200ms, exits</text>
+
+        <line x1="60" y1="120" x2="60" y2="150" stroke="currentColor" stroke-width="1" stroke-dasharray="3 3"/>
+        <text x="60" y="164" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="9.5" fill="currentColor" opacity="0.6">sessions.json</text>
+        <text x="60" y="176" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="9.5" fill="currentColor" opacity="0.6">name → targetId</text>
+
+        <line x1="170" y1="88" x2="248" y2="88" stroke="currentColor" stroke-width="1.4" marker-end="url(#a3)"/>
+        <text x="209" y="76" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="10" fill="currentColor">connectOverCDP</text>
+        <text x="209" y="106" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="9.5" fill="currentColor" opacity="0.6">per invocation</text>
+
+        <rect x="250" y="50" width="200" height="76" fill="none" stroke="#2557a7" stroke-width="1.6"/>
+        <text x="350" y="76" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="12.5" fill="#2557a7">Chrome</text>
+        <text x="350" y="93" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="9.5" fill="#2557a7" opacity="0.85">~/.web/profile</text>
+        <text x="350" y="107" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="9.5" fill="#2557a7" opacity="0.85">started once, long-lived</text>
+
+        <line x1="450" y1="88" x2="528" y2="88" stroke="currentColor" stroke-width="1.4" marker-end="url(#a3)"/>
+        <text x="489" y="76" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="10" fill="currentColor">real session</text>
+
+        <rect x="530" y="60" width="130" height="56" fill="none" stroke="currentColor" stroke-width="1.4"/>
+        <text x="595" y="84" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="12.5" fill="currentColor">website</text>
+        <text x="595" y="100" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="10" fill="currentColor" opacity="0.65">logged in</text>
+      </svg>
+      <p class="cap">Fig. 3 — Statefulness lives in Chrome, not in our process. Nothing of ours needs a lifecycle.</p>
+    </figure>
+
+    <div class="prose">
+      <p>Each step in a recipe is tagged with one of three replay modes, chosen at record time:</p>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th class="mono">mode</th><th>when</th><th>speed</th></tr></thead>
+        <tbody>
+          <tr><td class="mono">fetch</td><td>default whenever a matching endpoint was observed on the wire</td><td>fastest — no DOM touched</td></tr>
+          <tr><td class="mono">dom</td><td>fallback for JS-signed / WASM-token requests, canvas apps</td><td>ref-based interaction</td></tr>
+          <tr><td class="mono">standalone</td><td>only where auth is provably not browser-bound</td><td>outside the browser entirely</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="prose" style="max-width:68ch; color:var(--ink-dim); font-size:0.95rem;">An assertion failure at replay time demotes a step to <code class="mono">dom</code> and re-records — the tool never guesses its way past a broken assumption.</p>
+  </section>
+
+  <hr class="spec">
+
+  <!-- ===================== 05 FORMAT ===================== -->
+  <section id="format">
+    <p class="eyebrow"><span class="num">05</span> Recipe format</p>
+    <h2>A document you can read before it runs</h2>
+    <p class="section-intro">A recipe is plain, diffable, git-trackable JSON — not a vendor cache living on someone else's server. <code class="mono">recipes show</code> renders it as a plain-language dry-run before anything touches a real account. The format <em>is</em> the product.</p>
+
+    <pre class="code"><span class="c">// recipes/portal-check-balance.json — annotated</span>
+{
+  <span class="k">"site"</span>: <span class="s">"myportal.example.com"</span>,
+  <span class="k">"ttl"</span>: <span class="s">"6h"</span>,               <span class="c">// stale past this → re-record before trusting it</span>
+  <span class="k">"steps"</span>: [
+    {
+      <span class="k">"mode"</span>: <span class="s">"fetch"</span>,       <span class="c">// in-page, same-origin — see §03</span>
+      <span class="k">"call"</span>: <span class="s">"GET /api/account/balance"</span>,
+      <span class="k">"expect"</span>: {                <span class="c">// v1: response predicates only</span>
+        <span class="k">"status"</span>: <span class="s">200</span>,
+        <span class="k">"json.currency"</span>: <span class="s">"USD"</span>
+      }
+    }
+  ],
+  <span class="k">"auth_binding"</span>: <span class="s">"browser-session"</span>  <span class="c">// not portable — needs a live login</span>
+}</pre>
+
+    <div class="prose">
+      <p><strong>What it stores:</strong> request shape (method, URL template, parameterized body/headers), step order, and expectations. <strong>What it never stores:</strong> credentials or a copy of the session — auth is ambient, inherited from whatever browser is live when the recipe runs.</p>
+      <p>That has one consequence worth stating without hedging: a recipe is <strong>portable as a document, not as an executable</strong>. You can read, review, diff, and share the JSON anywhere — that's the audit story, and it holds completely. Running it still requires a machine with a live, authenticated session for that site. It's a reviewable script, not a credential bundle.</p>
+      <p>Verification is scoped deliberately narrow for v1: <code class="mono">expect</code> covers status codes and JSON shape/value matches on <code class="mono">fetch</code>-mode steps only. Diffing a post-action accessibility snapshot to confirm "the right thing visibly happened" is a harder problem than the one this project set out to solve — it's punted, not forgotten.</p>
+    </div>
+  </section>
+
+  <hr class="spec">
+
+  <!-- ===================== 06 PHASES ===================== -->
+  <section id="phases">
+    <p class="eyebrow"><span class="num">06</span> Build phases</p>
+    <h2>In order, each gating the next</h2>
+    <p class="section-intro">Phase 0 exists to kill the project fast if the core claim doesn't hold. Everything after it only gets built once 0 has passed.</p>
+
+    <div class="phase">
+      <div class="pnum">0</div>
+      <div>
+        <h4>Preconditions</h4>
+        <p>Prove — not assume — that in-page <code class="mono">fetch()</code> returns usable JSON with the browser's real TLS fingerprint; that it beats a Cloudflare challenge a Node-side copy of the same cookies does not; and that a triggering XHR is actually identifiable in real network noise (prefetches, analytics, debounced requests).</p>
+        <p class="done"><b>Gate</b>If the Cloudflare claim fails here, the whole project is invalid — found in days, not months.</p>
+      </div>
+    </div>
+    <div class="phase">
+      <div class="pnum">1</div>
+      <div>
+        <h4>Chrome bootstrap + sessions</h4>
+        <p><code class="mono">recipes browser start</code>, persistent profile, <code class="mono">connectOverCDP</code> reconnect, <code class="mono">sessions.json</code>, <code class="mono">needs-human</code> detection.</p>
+      </div>
+    </div>
+    <div class="phase">
+      <div class="pnum">2</div>
+      <div>
+        <h4>Snapshot + refs</h4>
+        <p>Accessibility tree via <code class="mono">newCDPSession</code>; refs keyed on <code class="mono">backendNodeId</code> so they survive re-snapshots. Then <code class="mono">--diff</code>, <code class="mono">--interactive</code>, <code class="mono">--within</code>, batching.</p>
+        <p class="done"><b>Done means</b>a 20-step task stays under ≈15K tokens.</p>
+      </div>
+    </div>
+    <div class="phase">
+      <div class="pnum">3</div>
+      <div>
+        <h4>Recipe format + <code class="mono">show</code></h4>
+        <p>The schema and the dry-run renderer — cheap to build, demoable in a day, and it is the trust story described in §05.</p>
+      </div>
+    </div>
+    <div class="phase">
+      <div class="pnum">4</div>
+      <div>
+        <h4><code class="mono">record</code></h4>
+        <p>Capture <code class="mono">Network.*</code> to HAR with bodies; correlate wire traffic to user actions; parameterize by diffing two recordings of the same flow.</p>
+      </div>
+    </div>
+    <div class="phase">
+      <div class="pnum">5</div>
+      <div>
+        <h4><code class="mono">run</code> + verification</h4>
+        <p>In-page <code class="mono">fetch()</code> replay; the assertion engine; automatic demotion to <code class="mono">dom</code> mode and re-recording on any mismatch.</p>
+      </div>
+    </div>
+    <div class="phase">
+      <div class="pnum">6</div>
+      <div>
+        <h4><code class="mono">watch</code></h4>
+        <p>Cron hook, session-expiry detection that fails loud instead of hanging, change diffing, notification.</p>
+      </div>
+    </div>
+    <div class="phase">
+      <div class="pnum">7</div>
+      <div>
+        <h4>Surfaces</h4>
+        <p>A <code class="mono">SKILL.md</code> for Claude Code, and an optional ~150-line MCP wrapper over the same reconnect logic for other agents that want typed tools.</p>
+      </div>
+    </div>
+  </section>
+
+  <hr class="spec">
+
+  <!-- ===================== 07 INSTALL ===================== -->
+  <section id="install">
+    <p class="eyebrow"><span class="num">07</span> What you install</p>
+    <h2>Almost nothing</h2>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Need</th><th>Status</th></tr></thead>
+        <tbody>
+          <tr><td>Node</td><td class="ok">already installed (v22)</td></tr>
+          <tr><td>Chrome</td><td class="ok">already installed — driven via <code class="mono">channel: 'chrome'</code>, no browser download</td></tr>
+          <tr><td><code class="mono">playwright</code></td><td>one npm dependency, pinned</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <hr class="spec">
+
+  <!-- ===================== 08 SURFACES ===================== -->
+  <section id="surfaces">
+    <p class="eyebrow"><span class="num">08</span> Integration surfaces</p>
+    <h2>The CLI is the integration layer</h2>
+    <p class="section-intro">None of the following need to know about each other — they only need to be able to run a command.</p>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Consumer</th><th>How</th></tr></thead>
+        <tbody>
+          <tr><td>Claude Code</td><td><code class="mono">SKILL.md</code> + plain Bash — zero context cost until loaded</td></tr>
+          <tr><td>Other AI agents</td><td>they all shell out; <code class="mono">recipes run x --json</code> is universal</td></tr>
+          <tr><td>cron / scripts / you</td><td><code class="mono">recipes run x --json | jq</code></td></tr>
+          <tr><td>Typed-tool clients</td><td>optional MCP wrapper, phase 7</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <hr class="spec">
+
+  <!-- ===================== 09 VERIFY ===================== -->
+  <section id="verify">
+    <p class="eyebrow"><span class="num">09</span> Verification &amp; benchmark</p>
+    <h2>How we'll know it works — and prove it publicly</h2>
+    <ul class="limits" style="margin-bottom: 28px;">
+      <li>Phase 0 gates, run in order, before any engine code.</li>
+      <li>Refs survive a React re-render; diffs stay correct on a mutating DOM.</li>
+      <li>An unseen site, cold: snapshot, fill a search box, submit, extract JSON — zero screenshots taken.</li>
+      <li>A 20-step task instrumented and checked against the ≈15K-token target.</li>
+      <li>A flow broken on purpose (renamed label, silently-rejected form) fails loudly — never reports false success.</li>
+      <li>Run under cron across a session expiry: clean <code class="mono">needs-human</code>, not a hang or a silent no-op.</li>
+      <li>The whole flow driven from bash with <code class="mono">--json | jq</code>, no Claude involved.</li>
+    </ul>
+
+    <div class="prose">
+      <p><strong>The launch asset:</strong> one real multi-step flow on a Cloudflare-protected site, run four ways — a cold LLM screenshot run, <code class="mono">dom</code> replay, in-page <code class="mono">fetch</code> replay, and derive-client's standalone client on the same site. Wall-clock and tokens for all four. That fourth column, showing the standalone client failing where ours doesn't, is the argument, and nobody has published it yet.</p>
+    </div>
+  </section>
+
+  <hr class="spec">
+
+  <!-- ===================== 10 LIMITS ===================== -->
+  <section id="limits">
+    <p class="eyebrow"><span class="num">10</span> Known limits</p>
+    <h2>Stated now, not discovered later</h2>
+    <ul class="limits">
+      <li>Canvas/WebGL apps (Figma, maps) have no useful accessibility tree — falls back to a screenshot and says so, rather than pretending.</li>
+      <li>Unlabeled markup ("div soup") produces snapshots that are technically correct and practically useless.</li>
+      <li>JS-signed, HMAC, or WASM-derived request tokens can't be <code class="mono">fetch</code>-replayed — those steps stay <code class="mono">dom</code>-only. — predicted correctly; hit for real on GitHub's rotating X-Fetch-Nonce, see §11</li>
+      <li>Write endpoints behind Turnstile pre-clearance may still re-challenge even when reads replay cleanly.</li>
+      <li>The Accessibility CDP domain is experimental — kept behind an adapter rather than called directly.</li>
+      <li>The logged-in Cloudflare case is proven only for a public, no-account test site so far; the authenticated case needs a real target chosen before it's confirmed. — closed with a real human click, see §11; the finding is more nuanced than assumed here</li>
+      <li>Pinned to one version of Playwright's API — an upgrade needs a smoke test, not a blind bump.</li>
+      <li>No automated test suite — everything verified was live, ad-hoc testing against real sites, not a re-runnable suite.</li>
+      <li>Chrome must be kept running manually — the no-daemon design means nothing restarts it after a reboot or manual quit, which matters once a cron entry depends on it (see §11).</li>
+    </ul>
+  </section>
+
+  <section id="postbuild">
+    <p class="eyebrow"><span class="num">11</span> Built — what reality changed</p>
+    <h2>Every predicted risk that actually happened, plus what wasn't</h2>
+    <p class="section-intro">This was fully built and run against real sites, including a real logged-in GitHub account and a real cron schedule. Some of §10's predictions landed exactly; some of what broke wasn't predicted at all.</p>
+
+    <div class="decision">
+      <div class="decision-head"><h3>The Cloudflare finding — closed, but narrower than assumed</h3></div>
+      <div class="options" style="grid-template-columns: 1fr;">
+        <div class="option" style="background:var(--paper-raised);">
+          <p>A real Turnstile was cleared by hand, confirmed via the actual <code class="mono">cf_clearance</code> cookie. But both in-page <code class="mono">fetch()</code> <strong>and</strong> the banned standalone <code class="mono">page.request</code> then returned 200 with that cookie — Cloudflare didn't re-check the TLS fingerprint on the follow-up request. The TLS divergence (§03) is real and measured; its payoff concentrates in <em>obtaining</em> clearance, not necessarily in every request after. In-page replay stays strictly safer — just not proven <em>necessary</em> post-clearance on the two real sites tested.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="decision">
+      <div class="decision-head"><h3>Two bugs the design didn't anticipate</h3></div>
+      <div class="options">
+        <div class="option" style="background:var(--paper-raised);">
+          <h4 style="font-family:'IBM Plex Mono',monospace; font-size:0.95rem;">Zero-tab crash</h4>
+          <p>Playwright's <code class="mono">connectOverCDP</code> throws outright with no open tabs — it needs an existing target to attach its default context to. Fixed by guaranteeing a tab exists via the raw CDP HTTP endpoint before Playwright ever connects.</p>
+        </div>
+        <div class="option" style="background:var(--paper-raised);">
+          <h4 style="font-family:'IBM Plex Mono',monospace; font-size:0.95rem;"><code class="mono">needs-human</code> false positive</h4>
+          <p>Matched CSS class fragments that persist whether the widget was solved or not. Fixed: those markers now also require the clearance cookie to be absent.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="decision">
+      <div class="decision-head"><h3>Recipes assumed things they shouldn't have</h3></div>
+      <div class="options">
+        <div class="option" style="background:var(--paper-raised);">
+          <h4 style="font-family:'IBM Plex Mono',monospace; font-size:0.95rem;">No starting page</h4>
+          <p>A hand-written recipe implicitly assumed its session's tab was already on the right page — broke the moment that tab navigated elsewhere. Fixed with an optional <code class="mono">start_url</code> the runner navigates to first.</p>
+        </div>
+        <div class="option" style="background:var(--paper-raised);">
+          <h4 style="font-family:'IBM Plex Mono',monospace; font-size:0.95rem;">Format fields that were documentation only</h4>
+          <p><code class="mono">ttl</code> and <code class="mono">auth_binding</code> were printed by <code class="mono">show</code> but never checked by <code class="mono">run</code>. Both are real now: a stale recipe refuses to run; <code class="mono">auth_binding: "none"</code> genuinely omits credentials.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="prose" style="max-width:68ch;">
+      <p><strong>The Phase 4 gap got filled:</strong> <code class="mono">record</code> used to dump raw traffic a human read to hand-write a recipe. <code class="mono">recipe from-network</code> now generates a draft automatically — proven end to end on real GitHub traffic.</p>
+      <p><strong>Shipped beyond the original plan:</strong> <code class="mono">dom</code> mode was scoped as "only if needed" — it turned out to be needed for replay itself. GitHub's internal API requires a rotating, single-use nonce per request; reading it once and reusing it still gets rejected. <code class="mono">dom</code> mode's read/click/fill route through the same trusted-CDP-input engine from §04 — not a second implementation — and all three are proven against the real account.</p>
+    </div>
+  </section>
+
+  <hr class="spec">
+
+  <footer>
+    <span>recipes — design doc 001, built and verified</span>
+    <span>see README.md for the full live changelog</span>
+  </footer>
+
+</div>
+</body>
+</html>

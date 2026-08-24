@@ -1,6 +1,6 @@
 # Build log
 
-The honest, live-verified history of how this was built — every bug found, every claim actually tested, in order. For installing and using the tool, see [README.md](README.md); this file is the record of *how it got proven to work*, not the user guide. The [original design doc](https://claude.ai/code/artifact/d3f839af-821d-4620-bf1d-0e3696b5b528) records the decisions made before any of this was built, including the alternatives considered and rejected.
+The honest, live-verified history of how this was built — every bug found, every claim actually tested, in order. For installing and using the tool, see [README.md](README.md); this file is the record of *how it got proven to work*, not the user guide. The [original design doc](https://manuqwert1234.github.io/recipe/design.html) records the decisions made before any of this was built, including the alternatives considered and rejected.
 
 ## Faster, fewer tokens, easier to integrate (this pass)
 

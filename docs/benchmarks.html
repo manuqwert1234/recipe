@@ -1,0 +1,397 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>recipes — benchmarks</title>
+<style>
+  .viz-root {
+    --surface-1: #fcfcfb;
+    --page: #f9f9f7;
+    --text-primary: #0b0b0b;
+    --text-secondary: #52514e;
+    --muted: #898781;
+    --grid: #e1e0d9;
+    --baseline: #c3c2b7;
+    --border: rgba(11,11,11,0.10);
+    --series-1: #2a78d6;   /* semantic snapshot */
+    --series-2: #eb6834;   /* screenshot / vision */
+    --series-3: #1baf7a;   /* recipes, after the truncation fix */
+    --good: #006300;
+    --warn-bg: #fbeee1;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:where(:not([data-theme="light"])) .viz-root {
+      --surface-1: #1a1a19;
+      --page: #0d0d0d;
+      --text-primary: #ffffff;
+      --text-secondary: #c3c2b7;
+      --muted: #898781;
+      --grid: #2c2c2a;
+      --baseline: #383835;
+      --border: rgba(255,255,255,0.10);
+      --series-1: #3987e5;
+      --series-2: #d95926;
+      --series-3: #199e70;
+      --good: #0ca30c;
+      --warn-bg: #2c2013;
+    }
+  }
+  :root[data-theme="dark"] .viz-root {
+    --surface-1: #1a1a19;
+    --page: #0d0d0d;
+    --text-primary: #ffffff;
+    --text-secondary: #c3c2b7;
+    --muted: #898781;
+    --grid: #2c2c2a;
+    --baseline: #383835;
+    --border: rgba(255,255,255,0.10);
+    --series-1: #3987e5;
+    --series-2: #d95926;
+    --series-3: #199e70;
+    --good: #0ca30c;
+    --warn-bg: #2c2013;
+  }
+
+  * { box-sizing: border-box; }
+  .viz-root {
+    background: var(--page);
+    color: var(--text-primary);
+    font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+    padding: 0 20px 80px;
+  }
+  .wrap { max-width: 980px; margin: 0 auto; }
+
+  .head { padding-top: 36px; margin-bottom: 28px; }
+  .eyebrow {
+    font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.08em;
+    color: var(--muted); font-weight: 600; margin: 0 0 8px;
+  }
+  h1 { font-size: 1.9rem; font-weight: 700; margin: 0 0 8px; letter-spacing: -0.01em; }
+  .sub { color: var(--text-secondary); font-size: 0.98rem; max-width: 62ch; margin: 0; line-height: 1.55; }
+
+  .methodology-key {
+    display: flex; gap: 18px; flex-wrap: wrap; margin-top: 18px;
+    font-size: 0.8rem; color: var(--text-secondary);
+  }
+  .methodology-key span { display: inline-flex; align-items: center; gap: 6px; }
+  .dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; }
+  .dot.measured { background: var(--good); }
+  .dot.estimated { background: var(--muted); }
+  .dot.cited { background: none; border: 1.5px solid var(--muted); }
+
+  /* ---- hero stats ---- */
+  .stats {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 1px;
+    background: var(--border); border: 1px solid var(--border); border-radius: 10px;
+    overflow: hidden; margin-bottom: 36px;
+  }
+  .stat { background: var(--surface-1); padding: 22px 24px; }
+  .stat .label { font-size: 0.8rem; color: var(--text-secondary); margin: 0 0 6px; }
+  .stat .value { font-size: 2.4rem; font-weight: 700; line-height: 1; margin: 0 0 6px; }
+  .stat .note { font-size: 0.78rem; color: var(--muted); margin: 0; }
+  @media (max-width: 620px) { .stats { grid-template-columns: 1fr; } }
+
+  /* ---- chart card ---- */
+  .card {
+    background: var(--surface-1); border: 1px solid var(--border); border-radius: 10px;
+    padding: 22px 24px 18px; margin-bottom: 22px;
+  }
+  .card h2 { font-size: 1.02rem; font-weight: 650; margin: 0 0 3px; }
+  .card .card-sub { font-size: 0.82rem; color: var(--text-secondary); margin: 0 0 18px; }
+  .badge {
+    display: inline-flex; align-items: center; gap: 5px;
+    font-size: 0.7rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em;
+    color: var(--text-secondary); border: 1px solid var(--border); border-radius: 20px;
+    padding: 2px 9px 2px 7px; margin-left: 8px; vertical-align: middle;
+  }
+
+  .bar-row { display: flex; align-items: center; gap: 14px; margin: 14px 0; }
+  .bar-row .cat-label { width: 168px; flex-shrink: 0; font-size: 0.86rem; color: var(--text-primary); text-align: right; }
+  .bar-track { flex: 1; position: relative; height: 24px; }
+  .bar-track .grid-line { position: absolute; top: 0; bottom: 0; width: 1px; background: var(--grid); }
+  .bar-fill {
+    height: 24px; border-radius: 4px; position: relative;
+    display: flex; align-items: center;
+    transition: filter 0.15s ease;
+  }
+  .bar-fill:hover { filter: brightness(1.08); }
+  .bar-fill .val {
+    position: absolute; left: calc(100% + 10px); white-space: nowrap;
+    font-size: 0.86rem; font-weight: 600; color: var(--text-primary);
+    font-variant-numeric: tabular-nums;
+  }
+  .axis-labels { display: flex; margin-left: 182px; margin-top: 4px; }
+  .axis-labels span { font-size: 0.72rem; color: var(--muted); }
+
+  /* ---- task chart (stacked steps) ---- */
+  .task-chart { display: flex; align-items: flex-end; gap: 26px; height: 200px; padding: 10px 0 0; }
+  .task-col { display: flex; flex-direction: column; align-items: center; flex: 1; height: 100%; justify-content: flex-end; }
+  .task-bar-wrap { width: 100%; max-width: 88px; display: flex; flex-direction: column; align-items: center; flex: 1; justify-content: flex-end; }
+  .task-bar {
+    width: 100%; border-radius: 4px 4px 0 0; position: relative;
+    display: flex; align-items: flex-start; justify-content: center; padding-top: 8px;
+  }
+  .task-bar .val { font-size: 0.84rem; font-weight: 700; color: #fff; font-variant-numeric: tabular-nums; }
+  .task-cat { margin-top: 10px; font-size: 0.82rem; color: var(--text-primary); font-weight: 600; }
+  .task-sub { font-size: 0.74rem; color: var(--muted); }
+
+  /* ---- citation card ---- */
+  .citation {
+    border: 1px dashed var(--border); border-radius: 10px; padding: 18px 22px; margin-bottom: 22px;
+    font-size: 0.86rem; color: var(--text-secondary); line-height: 1.6;
+  }
+  .citation .cite-label {
+    font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.06em; font-weight: 700;
+    color: var(--muted); margin-bottom: 8px; display: block;
+  }
+  .citation a { color: var(--series-1); }
+
+  .foot-note { font-size: 0.8rem; color: var(--muted); line-height: 1.6; margin-top: 30px; }
+  .foot-note code { background: var(--grid); padding: 1px 5px; border-radius: 3px; font-size: 0.86em; }
+</style>
+</head>
+<body>
+
+<div class="viz-root">
+  <div class="wrap">
+
+    <div class="head">
+      <p class="eyebrow">Benchmark — measured live in this session</p>
+      <h1>Semantic reading vs. screenshots</h1>
+      <p class="sub">Every number below came from actually running both methods against the same real, live page (a logged-in GitHub pull-requests view) back to back — not a simulation. Where a number is estimated or drawn from outside this session, it's labeled as such rather than blended in.</p>
+      <div class="methodology-key">
+        <span><span class="dot measured"></span> Measured this session</span>
+        <span><span class="dot estimated"></span> Estimated from a measured input</span>
+        <span><span class="dot cited"></span> Cited external benchmark</span>
+      </div>
+    </div>
+
+    <div class="stats">
+      <div class="stat">
+        <p class="label">Tokens for one page-read</p>
+        <p class="value">4.3–5.2×</p>
+        <p class="note">fewer tokens: semantic snapshot vs. a screenshot of the identical page state</p>
+      </div>
+      <div class="stat">
+        <p class="label">Capture time for one page-read</p>
+        <p class="value">3.1×</p>
+        <p class="note">faster: 74ms vs. 228ms, same page, back to back</p>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>Tokens per page-read<span class="badge"><span class="dot measured" style="width:6px;height:6px;"></span>measured + estimated</span></h2>
+      <p class="card-sub">Screenshot: exact, from Claude's documented resize + (w×h)/750 formula. Snapshot: estimated from the real captured text length (1,545 chars) at 3.3–4 chars/token.</p>
+
+      <div class="bar-row">
+        <span class="cat-label">Semantic snapshot</span>
+        <div class="bar-track">
+          <div class="bar-fill" style="width:19%; background:var(--series-1);" title="386–468 tokens">
+            <span class="val">386–468 tokens</span>
+          </div>
+        </div>
+      </div>
+      <div class="bar-row">
+        <span class="cat-label">Screenshot</span>
+        <div class="bar-track">
+          <div class="bar-fill" style="width:100%; background:var(--series-2);" title="2,020 tokens">
+            <span class="val">2,020 tokens</span>
+          </div>
+        </div>
+      </div>
+      <div class="axis-labels"><span>0</span></div>
+    </div>
+
+    <div class="card">
+      <h2>Capture time per page-read<span class="badge">measured</span></h2>
+      <p class="card-sub">Wall-clock time to capture the page state, same real Chrome tab, same page, immediately consecutive calls. Infrastructure cost only — excludes model reasoning time on either side.</p>
+
+      <div class="bar-row">
+        <span class="cat-label">Semantic snapshot</span>
+        <div class="bar-track">
+          <div class="bar-fill" style="width:32%; background:var(--series-1);" title="74ms">
+            <span class="val">74ms</span>
+          </div>
+        </div>
+      </div>
+      <div class="bar-row">
+        <span class="cat-label">Screenshot</span>
+        <div class="bar-track">
+          <div class="bar-fill" style="width:100%; background:var(--series-2);" title="228ms">
+            <span class="val">228ms</span>
+          </div>
+        </div>
+      </div>
+      <div class="axis-labels"><span>0</span></div>
+    </div>
+
+    <div class="card">
+      <h2>A 5-step task, extrapolated<span class="badge">estimated from measured</span></h2>
+      <p class="card-sub">A vision agent needs a fresh screenshot after every action to see the result; recipes needs a fresh snapshot the same way. Both bars are the real per-read number above × 5 steps — not a separately measured task, but simple, transparent arithmetic on real inputs.</p>
+
+      <div class="task-chart">
+        <div class="task-col">
+          <div class="task-bar-wrap" style="height:19%;">
+            <div class="task-bar" style="background:var(--series-1); height:100%;">
+              <span class="val">~2.2K tokens</span>
+            </div>
+          </div>
+          <div class="task-cat">Semantic snapshot</div>
+          <div class="task-sub">5 × ~430 tok</div>
+        </div>
+        <div class="task-col">
+          <div class="task-bar-wrap" style="height:100%;">
+            <div class="task-bar" style="background:var(--series-2); height:100%;">
+              <span class="val">~10.1K tokens</span>
+            </div>
+          </div>
+          <div class="task-cat">Screenshot</div>
+          <div class="task-sub">5 × 2,020 tok</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="head" style="margin-top:44px; padding-top:0;">
+      <p class="eyebrow">Head-to-head — vs. a real market tool, same live page</p>
+      <h1 style="font-size:1.5rem;">Where recipes actually lost, and what happened next</h1>
+      <p class="sub">Run back to back against Claude Code's own <code>claude-in-chrome</code> extension on the identical, logged-out Wikipedia page — not a friendlier page picked after the fact.</p>
+    </div>
+
+    <div class="card" style="border-color: var(--series-2); background: color-mix(in srgb, var(--warn-bg) 35%, var(--surface-1));">
+      <h2>recipes lost this one, honestly<span class="badge">measured</span></h2>
+      <p class="card-sub">Same URL, same logged-out state, both tools' default "interactive elements" mode. recipes walked the entire accessibility tree with no cap — including ~440 citation links buried in the article's References section, nowhere near the viewport.</p>
+
+      <div class="bar-row">
+        <span class="cat-label">claude-in-chrome</span>
+        <div class="bar-track">
+          <div class="bar-fill" style="width:34%; background:var(--series-1);" title="4,683 chars, 69 elements">
+            <span class="val">4,683 chars · 69 elements</span>
+          </div>
+        </div>
+      </div>
+      <div class="bar-row">
+        <span class="cat-label">recipes (before fix)</span>
+        <div class="bar-track">
+          <div class="bar-fill" style="width:100%; background:var(--series-2);" title="13,897 chars, 508 elements">
+            <span class="val">13,897 chars · 508 elements — 3× larger</span>
+          </div>
+        </div>
+      </div>
+      <div class="axis-labels"><span>0</span></div>
+    </div>
+
+    <div class="card">
+      <h2>Fixed the same day it was found<span class="badge">measured, after a real code change</span></h2>
+      <p class="card-sub">Added a default 150-element cap with an explicit, printed truncation notice — the "hard cap, never silent" behavior the original design doc promised but the code never actually implemented until this comparison caught it. Re-ran the identical page afterward.</p>
+
+      <div class="bar-row">
+        <span class="cat-label">claude-in-chrome</span>
+        <div class="bar-track">
+          <div class="bar-fill" style="width:82%; background:var(--series-1);" title="4,683 chars">
+            <span class="val">4,683 chars</span>
+          </div>
+        </div>
+      </div>
+      <div class="bar-row">
+        <span class="cat-label">recipes (after fix)</span>
+        <div class="bar-track">
+          <div class="bar-fill" style="width:72%; background:var(--series-3);" title="4,088 chars">
+            <span class="val">4,088 chars — now smaller, truncation stated explicitly</span>
+          </div>
+        </div>
+      </div>
+      <div class="axis-labels"><span>0</span></div>
+    </div>
+
+    <div class="citation" style="border-style:solid;">
+      <span class="cite-label">Also tested — not included as a clean number</span>
+      The same two tools on a GitHub repository README page came out roughly tied (9,393 vs 9,671 chars) — but <code>recipes</code> was logged into a real account in that test and <code>claude-in-chrome</code>'s tab wasn't, so the extra authenticated-only UI (notifications, Copilot chat, user menu) isn't a fair delta either way. Left out of the chart rather than presented as a win.
+    </div>
+
+    <div class="card" style="border-color: var(--series-2);">
+      <h2>Pushed further — two real fixes, one honest mixed result<span class="badge">measured</span></h2>
+      <p class="card-sub">Asked to make this decisively better, not just tied. Found and fixed two more real gaps — but a genuine multi-step round-trip test came out mixed, not a clean sweep, and that's reported as found rather than reworked into a win.</p>
+      <ul style="margin:0 0 4px; padding-left:20px; font-size:0.88rem; line-height:1.7; color:var(--text-primary);">
+        <li><strong>Fixed:</strong> nameless links/buttons (~10% of a typical page) dropped from <code>--interactive</code> — unidentifiable by a screen reader too, pure noise.</li>
+        <li><strong>Fixed, bigger:</strong> a closed native <code>&lt;select&gt;</code> was exposing all its options — Wikipedia's language picker alone added 77 elements to <em>every</em> snapshot, before it was ever opened, and a closed option isn't even targetable by a trusted click anyway.</li>
+        <li><strong>Reported as-is:</strong> a real "read → click → read again" round trip came out <em>narrowly worse</em> for recipes before the option fix (8,556 vs claude-in-chrome's 7,997 bytes) — and a clean re-test afterward hit a different real confound: recipes' shared persistent Chrome profile carried over Wikipedia's own saved UI state from the earlier click. That's a genuine tradeoff of staying logged in across commands, not a bug, but it makes this specific benchmark hard to run twice cleanly.</li>
+      </ul>
+    </div>
+
+    <div class="head" style="margin-top:44px; padding-top:0;">
+      <p class="eyebrow">Against the market's own fast, token-conscious CLI</p>
+      <h1 style="font-size:1.5rem;"><code>recipes</code> vs. <code>@playwright/cli</code></h1>
+      <p class="sub">Installed the real package (<code>npm i -g @playwright/cli</code>), attached it to real Chrome with a persistent profile — its own closest-to-us configuration — and ran it against the identical live Wikipedia article as recipes, same moment, same machine.</p>
+    </div>
+
+    <div class="card">
+      <h2>Speed, warm, 3 runs each<span class="badge">measured</span></h2>
+      <p class="card-sub">Both tools already attached to a running, already-navigated browser — the steady-state case that matters for a multi-step agent task.</p>
+      <div class="bar-row">
+        <span class="cat-label">recipes</span>
+        <div class="bar-track">
+          <div class="bar-fill" style="width:56%; background:var(--series-1);" title="~490ms avg">
+            <span class="val">~490ms avg (450–560ms)</span>
+          </div>
+        </div>
+      </div>
+      <div class="bar-row">
+        <span class="cat-label">@playwright/cli</span>
+        <div class="bar-track">
+          <div class="bar-fill" style="width:100%; background:var(--series-2);" title="~790ms avg">
+            <span class="val">~790ms avg (730–900ms) — 1.6× slower</span>
+          </div>
+        </div>
+      </div>
+      <div class="axis-labels"><span>0</span></div>
+    </div>
+
+    <div class="card">
+      <h2>Tokens, same page, isolated honestly<span class="badge">measured</span></h2>
+      <p class="card-sub"><code>@playwright/cli</code>'s <code>snapshot</code> has no interactive-only filter and no default cap — every run returns the entire page tree. To isolate what's actually causing the gap, recipes is shown in <em>both</em> modes: full (same scope as theirs) and interactive.</p>
+      <div class="bar-row">
+        <span class="cat-label">recipes --interactive</span>
+        <div class="bar-track">
+          <div class="bar-fill" style="width:3%; background:var(--series-1);" title="4,202 chars">
+            <span class="val">4,202 chars</span>
+          </div>
+        </div>
+      </div>
+      <div class="bar-row">
+        <span class="cat-label">recipes (full, capped)</span>
+        <div class="bar-track">
+          <div class="bar-fill" style="width:3%; background:var(--series-3);" title="4,167 chars">
+            <span class="val">4,167 chars — the cap, not the filter, does most of the work here</span>
+          </div>
+        </div>
+      </div>
+      <div class="bar-row">
+        <span class="cat-label">@playwright/cli</span>
+        <div class="bar-track">
+          <div class="bar-fill" style="width:100%; background:var(--series-2);" title="137,444 chars">
+            <span class="val">137,444 chars — no cap exists to disable</span>
+          </div>
+        </div>
+      </div>
+      <div class="axis-labels"><span>0</span></div>
+    </div>
+
+    <div class="citation" style="border-style:solid;">
+      <span class="cite-label">The honest caveat, stated plainly</span>
+      This is not "our engine collects less data" — recipes' own uncapped element count on this page (2,149) is in the same ballpark as theirs (2,022 lines). The real difference is that <code>recipes</code> ships a default 150-element cap with an explicit truncation notice, and a purpose-built role-based interactive filter; <code>@playwright/cli</code>, aimed more at test authoring and codegen than agent token budgets, offers neither by default (only an uncapped <code>--depth</code> option). That's a genuine, structural product difference — not a rigged test — but it's worth naming precisely rather than implying our raw accessibility walk is smaller, which it isn't.
+    </div>
+
+    <div class="citation">
+      <span class="cite-label">Cited — not measured in this session</span>
+      An independent benchmark of Playwright MCP (a comparable snapshot-based tool) found <strong>~114K tokens</strong> for a full browser-automation task via screenshots/verbose snapshots vs. <strong>~27K tokens</strong> via a CLI-style flow — a ~4.2× reduction, consistent in direction and rough magnitude with what's measured above, on a different task and toolchain. (Referenced during this project's design phase; included here for external corroboration, kept separate from the live-measured numbers.)
+    </div>
+
+    <p class="foot-note">
+      Measured against <code>https://github.com/pulls</code> (real, logged-in session) using <code>recipes</code>. Screenshot: 2400×1478px raw, resized to 1568×966 per Claude's vision pipeline before tokenizing, 143.8KB PNG. Snapshot: 44 interactive elements, 1,545 characters, via the accessibility tree. Both captured through the same live CDP session, one immediately after the other, on identical page state.
+    </p>
+
+  </div>
+</div>
+</body>
+</html>
