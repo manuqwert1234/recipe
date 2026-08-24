@@ -115,6 +115,11 @@ export async function stopBrowser() {
   if (!fs.existsSync(BROWSER_STATE_FILE)) return { wasRunning: false };
   const { pid } = JSON.parse(fs.readFileSync(BROWSER_STATE_FILE, "utf8"));
   try {
+    // Windows has no real POSIX signals — Node's process.kill still works
+    // there, but any signal name (including SIGTERM) forcefully terminates
+    // the process rather than requesting a graceful shutdown. Fine for
+    // Chrome: it doesn't need a graceful SIGTERM to release its profile
+    // lock cleanly.
     process.kill(pid, "SIGTERM");
   } catch {
     // already dead — fine

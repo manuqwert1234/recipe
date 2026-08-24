@@ -226,6 +226,8 @@
         <span class="badge accent">MIT licensed</span>
         <span class="badge">Node 18+</span>
         <span class="badge">macOS</span>
+        <span class="badge">Linux</span>
+        <span class="badge">Windows</span>
       </div>
       <h1>recipes</h1>
       <p class="pitch">Drive websites through their accessibility tree instead of screenshots and pixel guessing. Real logged-in Chrome, auditable JSON recipes, in-page replay — built for AI agents and humans alike.</p>
@@ -261,7 +263,7 @@ git clone https://github.com/manuqwert1234/recipe.git
 cd recipe
 npm install
 npm link</pre>
-      <p class="dim">Requires Node 18+ and Google Chrome. macOS only for now — Linux/Windows Chrome paths exist in the code but are unverified.</p>
+      <p class="dim">Requires Node 18+ and Google Chrome. Supports macOS, Linux, and Windows — Chrome install-path detection covers real, researched locations on all three (including Windows' common per-user install under <code class="inline">%LOCALAPPDATA%</code>), but only macOS has been run end-to-end on real hardware so far.</p>
     </section>
 
     <section id="quickstart">
@@ -443,7 +445,7 @@ recipes recipe run my-flow.json --session s</pre>
         <li>Canvas/WebGL apps (Figma, maps) have no useful accessibility tree — not a good fit for this tool.</li>
         <li>Sites with no accessible labels ("div soup") produce technically-correct, practically-useless snapshots.</li>
         <li><code class="inline">--diff</code> tracks the accessibility tree's membership and content, not pure visual state — a native <code class="inline">&lt;select&gt;</code> toggling open won't show as a change, since its options were already in the tree.</li>
-        <li>macOS only, currently — Linux/Windows Chrome paths are unverified.</li>
+        <li>Linux and Windows are implemented (real, researched Chrome install paths for each), but unverified on real hardware — only macOS has been run end-to-end so far. Chrome-not-found errors list exactly which paths were checked.</li>
         <li>No automated browser-driven test suite yet — <code class="inline">npm test</code> covers the logic that doesn't need Chrome; everything else is verified through live testing (see the build log).</li>
       </ul>
     </section>

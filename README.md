@@ -38,7 +38,7 @@ npm install
 npm link
 ```
 
-Requires Node 18+ and Google Chrome. macOS only for now.
+Requires Node 18+ and Google Chrome. Supports macOS, Linux, and Windows — Chrome install-path detection covers all three with real, researched locations (including Windows' common per-user install under `%LOCALAPPDATA%`), but only macOS has been run end-to-end on real hardware so far. If Chrome isn't found on Linux/Windows, the error lists exactly which paths were checked.
 
 ## Quickstart
 
@@ -79,7 +79,7 @@ Separately: **this covers "is it technically evasion," not "is it allowed."** Au
 - Canvas/WebGL apps (Figma, maps) have no useful accessibility tree.
 - Sites with no accessible labels ("div soup") produce technically-correct, practically-useless snapshots.
 - Some endpoints protect against replay with a rotating, per-request signed token — `dom` mode (locate-and-interact) is the fallback, not `fetch` mode.
-- macOS only, currently.
+- Linux and Windows support is implemented but unverified on real hardware — only macOS has been run end-to-end.
 - No automated browser-driven test suite yet — `npm test` covers the logic that doesn't need Chrome.
 
 ## More
