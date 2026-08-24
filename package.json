@@ -2,7 +2,14 @@
   "name": "recipes-cli",
   "version": "0.1.0",
   "description": "Drive websites through their accessibility tree instead of screenshots — real logged-in Chrome, auditable JSON recipes, in-page replay.",
-  "keywords": ["browser-automation", "cli", "accessibility", "playwright", "agent", "mcp"],
+  "keywords": [
+    "browser-automation",
+    "cli",
+    "accessibility",
+    "playwright",
+    "agent",
+    "mcp"
+  ],
   "license": "MIT",
   "homepage": "https://github.com/manuqwert1234/recipe#readme",
   "repository": {
@@ -16,9 +23,13 @@
   "engines": {
     "node": ">=18"
   },
-  "os": ["darwin", "linux", "win32"],
+  "os": [
+    "darwin",
+    "linux",
+    "win32"
+  ],
   "bin": {
-    "recipes": "./bin/recipes.js"
+    "recipes": "bin/recipes.js"
   },
   "files": [
     "bin",
