@@ -44,7 +44,7 @@
     "access": "public"
   },
   "scripts": {
-    "test": "node --test test/recipe.test.js"
+    "test": "node --test test/recipe.test.js test/sessions.test.js"
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.30.0",

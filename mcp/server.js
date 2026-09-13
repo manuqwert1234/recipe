@@ -9,7 +9,7 @@ import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js"
 import { z } from "zod";
 
 import { startBrowser, connect } from "../src/browser.js";
-import { tagPage, resolveSession, listSessions, findSession } from "../src/sessions.js";
+import { tagPage, resolveSession, listSessions, acquireSession } from "../src/sessions.js";
 import { takeSnapshot, clickRef, fillRef } from "../src/refs.js";
 import { needsHuman } from "../src/needs-human.js";
 import { loadRecipe, renderShow, runRecipe } from "../src/recipe.js";
@@ -52,9 +52,9 @@ server.registerTool(
   },
   async ({ url, session }) => {
     const { context, browser } = await connect();
-    let page = await findSession(context, session);
-    if (!page) { page = await context.newPage(); await tagPage(page, session); }
+    const page = await acquireSession(context, session);
     await page.goto(url, { waitUntil: "domcontentloaded" });
+    await tagPage(page, session);
     const nh = await needsHuman(page);
     await browser.close();
     return text({ opened: url, session, needsHuman: nh });
