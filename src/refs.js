@@ -114,11 +114,17 @@ export async function takeSnapshot(page, sessionName, opts = {}) {
     // anyway. Show the select itself (the combobox role); skip its
     // options until something actually expands it into view.
     if (opts.interactive && role === "option") continue;
-    // A link/button with no accessible name is something a human using a
-    // screen reader couldn't identify either — it's not useful to act on by
-    // reference, just noise inflating the count. Form fields are exempt:
-    // an input can be meaningfully fillable even with a thin/absent name.
-    if (opts.interactive && !name.trim() && (role === "link" || role === "button")) continue;
+    // An unnamed link is something a human using a screen reader couldn't
+    // identify either — it's not useful to act on by reference, just noise
+    // inflating the count. Buttons are NOT exempted from this the same way:
+    // found live via head-to-head testing (2026-09-13) — a bare
+    // <input type="submit"> or icon-only button routinely has no accessible
+    // name at all but is exactly the element a recipe needs to click (the
+    // plain-HTML DuckDuckGo search form's submit button was invisible to
+    // `interactive:true` for this reason, forcing a fallback to a full,
+    // uncapped snapshot just to find it). Form fields were already exempt
+    // for the same underlying reason — extend that exemption to buttons.
+    if (opts.interactive && !name.trim() && role === "link") continue;
     if (n.backendDOMNodeId == null) continue;
 
     const ref = ensureRef(n.backendDOMNodeId);
@@ -247,6 +253,22 @@ function resolveBackendId(sessionName, ref) {
   return backendNodeId;
 }
 
+/** Is `candidate` the target node itself or one of its descendants? */
+async function isSameOrDescendant(client, targetBackendId, candidateBackendId) {
+  if (candidateBackendId === targetBackendId) return true;
+  const { node } = await client.send("DOM.describeNode", {
+    backendNodeId: candidateBackendId,
+    depth: -1,
+  });
+  const stack = [node];
+  while (stack.length) {
+    const n = stack.pop();
+    if (n.backendNodeId === targetBackendId) return true;
+    for (const c of n.children ?? []) stack.push(c);
+  }
+  return false;
+}
+
 /** Click via trusted CDP input events — not a synthetic .click(), on purpose (see design doc §02). */
 export async function clickRef(page, sessionName, ref) {
   const backendNodeId = resolveBackendId(sessionName, ref);
@@ -261,6 +283,31 @@ export async function clickRef(page, sessionName, ref) {
   const quad = box.model.content; // [x1,y1,x2,y2,x3,y3,x4,y4]
   const x = (quad[0] + quad[4]) / 2;
   const y = (quad[1] + quad[5]) / 2;
+
+  // Bug found live via head-to-head testing (2026-09-13): a click was
+  // dispatched blind at the box-model center with no check that the target
+  // was actually the topmost thing there. A sticky header, autocomplete
+  // overlay, or a duplicate (mobile/desktop) copy of the same widget can sit
+  // on top of the real element; the mouse events then land on whatever's
+  // actually painted at that point — or on nothing clickable — while this
+  // still reported {ref, x, y} as if the click had landed. Verify via
+  // DOM.getNodeForLocation before dispatching, and fail loudly instead of
+  // silently clicking the wrong element.
+  let hit;
+  try {
+    hit = await client.send("DOM.getNodeForLocation", {
+      x: Math.round(x),
+      y: Math.round(y),
+      includeUserAgentShadowDOM: true,
+    });
+  } catch {
+    hit = null;
+  }
+  if (hit && !(await isSameOrDescendant(client, backendNodeId, hit.backendNodeId))) {
+    throw new Error(
+      `${ref} is covered by another element at its click point (${Math.round(x)}, ${Math.round(y)}) — likely a sticky header, overlay, or duplicate widget on top of it. Scroll it into view or dismiss whatever's overlapping it, then take a fresh snapshot before retrying.`
+    );
+  }
 
   await client.send("Input.dispatchMouseEvent", { type: "mouseMoved", x, y });
   await client.send("Input.dispatchMouseEvent", { type: "mousePressed", x, y, button: "left", clickCount: 1 });
