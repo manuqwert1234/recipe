@@ -101,14 +101,34 @@ export async function connect() {
   }
   const list = await fetch(`${CDP_URL}/json/list`).then((r) => r.json());
   if (list.length === 0) {
-    await fetch(`${CDP_URL}/json/new?about:blank`, { method: "PUT" }).catch(() =>
-      fetch(`${CDP_URL}/json/new?about:blank`) // older Chrome builds accept GET here
-    );
+    await openOwnedTab("about:blank");
   }
   const browser = await chromium.connectOverCDP(CDP_URL);
   const context = browser.contexts()[0];
   if (!context) throw new Error("Connected to Chrome but found no browser context — this shouldn't happen now that a tab is guaranteed first.");
   return { browser, context };
+}
+
+/**
+ * Open a tab via Chrome's own CDP HTTP endpoint, not Playwright's
+ * context.newPage(). Tabs created through a Playwright CDP session can be
+ * disposed when that session disconnects (every CLI command calls
+ * browser.close()). Chrome-owned tabs survive, which is what we need:
+ * the next invocation has to find the same tab.
+ */
+export async function openOwnedTab(url = "about:blank") {
+  const path = `${CDP_URL}/json/new?${url}`;
+  let res;
+  try {
+    res = await fetch(path, { method: "PUT" });
+    if (!res.ok) throw new Error(`PUT ${res.status}`);
+  } catch {
+    res = await fetch(path); // older Chrome builds accept GET here
+  }
+  if (!res.ok) {
+    throw new Error(`Could not open a new tab via CDP HTTP (${res.status}).`);
+  }
+  return res.json();
 }
 
 export async function stopBrowser() {

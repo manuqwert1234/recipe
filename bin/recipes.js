@@ -52,17 +52,16 @@ program
   .option("--session <name>", "session name to bind this tab to", "default")
   .action(async (url, opts) => {
     const { connect } = await import("../src/browser.js");
-    const { tagPage, findSession } = await import("../src/sessions.js");
+    const { acquireSession, tagPage } = await import("../src/sessions.js");
     const { needsHuman } = await import("../src/needs-human.js");
     const { context, browser } = await connect();
     // Reuse the tab already bound to this session name, if one is open —
     // otherwise a stale duplicate tab wins the next lookup (see sessions.js).
-    let page = await findSession(context, opts.session);
-    if (!page) {
-      page = await context.newPage();
-      await tagPage(page, opts.session);
-    }
+    const page = await acquireSession(context, opts.session);
     await page.goto(url, { waitUntil: "domcontentloaded" });
+    // Re-stamp after navigation: window.name may have been wiped, and the
+    // persisted URL needs to match the page we actually landed on.
+    await tagPage(page, opts.session);
     const nh = await needsHuman(page);
     console.log(`Opened ${url} as session "${opts.session}".`);
     if (nh.needsHuman) console.log(`⚠ needs-human: ${nh.reason}`);
